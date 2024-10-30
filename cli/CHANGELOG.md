@@ -24,6 +24,15 @@ _Released 12/3/2024 (PENDING)_
 - Upgraded `electron` from `27.3.10` to `32.2.0`. Addresses [#29547](https://github.com/cypress-io/cypress/issues/29547).
 - Upgraded bundled Chromium version from `118.0.5993.159` to `128.0.6613.178`. Addresses [#29547](https://github.com/cypress-io/cypress/issues/29547).
 
+
+## 13.15.2
+
+_Released 11/5/2024 (PENDING)_
+
+**Dependency Updates:**
+
+- Updated `@cypress/request` from `3.0.4` to `3.0.6`. Addressed in [#30488](https://github.com/cypress-io/cypress/pull/30488).
+
 ## 13.15.1
 
 _Released 10/24/2024_

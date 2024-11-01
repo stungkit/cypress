@@ -1416,6 +1416,7 @@ export const AllCypressErrors = {
 
         https://on.cypress.io/component-testing`
   },
+
   UNSUPPORTED_BROWSER_VERSION: (errorMsg: string) => {
     return errTemplate`${fmt.off(errorMsg)}`
   },

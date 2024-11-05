@@ -20,6 +20,11 @@ _Released 12/3/2024 (PENDING)_
 - Cypress Component Testing no longer supports `Nuxt.js` version 2. Addresses [#30468](https://github.com/cypress-io/cypress/issues/30468).
 - Cypress Component Testing no longer supports `Vue` version 2. Addresses [#30295](https://github.com/cypress-io/cypress/issues/30295).
 
+**Deprecations:**
+
+- The `resourceType` option on `cy.intercept` has been deprecated. We anticipate the resource types to change or be completely removed in the future. Our intention is to replace essential functionality dependent on the `resourceType` within Cypress in a future version (like hiding network logs that are not fetch/xhr). Please leave feedback on any essential uses of `resourceType`
+in this [GitHub issue](https://github.com/cypress-io/cypress/issues/30447). Addresses [#30433](https://github.com/cypress-io/cypress/issues/30433).
+
 **Bugfixes:**
 
 - The CSS pseudo-class `:dir()` is now supported when testing in Electron. Addresses [#29766](https://github.com/cypress-io/cypress/issues/29766).

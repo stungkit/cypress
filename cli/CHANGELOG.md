@@ -28,6 +28,7 @@ in this [GitHub issue](https://github.com/cypress-io/cypress/issues/30447). Addr
 
 **Bugfixes:**
 
+- Elements with `display: contents` will no longer use box model calculations for visibility, and correctly show as visible when it is visible. Fixed in [#29680](https://github.com/cypress-io/cypress/pull/29680). Fixes [#29605](https://github.com/cypress-io/cypress/issues/29605).
 - The CSS pseudo-class `:dir()` is now supported when testing in Electron. Addresses [#29766](https://github.com/cypress-io/cypress/issues/29766).
 
 **Dependency Updates:**

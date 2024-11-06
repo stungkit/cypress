@@ -269,8 +269,6 @@
     "./node_modules/fast-glob/out/settings.js",
     "./node_modules/fast-glob/out/utils/path.js",
     "./node_modules/file-uri-to-path/index.js",
-    "./node_modules/finalhandler/node_modules/debug/src/browser.js",
-    "./node_modules/finalhandler/node_modules/debug/src/index.js",
     "./node_modules/firefox-profile/node_modules/fs-extra/lib/fs/index.js",
     "./node_modules/firefox-profile/node_modules/fs-extra/lib/index.js",
     "./node_modules/firefox-profile/node_modules/fs-extra/lib/json/index.js",

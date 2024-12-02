@@ -176,7 +176,7 @@ describe('src/cypress/dom/visibility', () => {
   context('hidden/visible overrides', () => {
     beforeEach(function () {
       // ensure all tests run against a scrollable window
-      const scrollThisIntoView = add('<div style=`height: 1000px;`></div><div>Should be in view</div>')
+      const scrollThisIntoView = add('<div style="height: 1000px;"></div><div>Should be in view</div>')
 
       this.$visHidden = add('<ul style="visibility: hidden;"></ul>')
       this.$parentVisHidden = add('<div class="invis" style="visibility: hidden;"><button>parent visibility: hidden</button></div>')
@@ -996,6 +996,56 @@ describe('src/cypress/dom/visibility', () => {
 
       it('is visible when parent is relatively positioned out of bounds but el is relatively positioned back in bounds', function () {
         expect(this.$parentOutOfBoundsButElInBounds.find('span')).to.be.visible
+      })
+
+      it('is visible when element is statically positioned and parent element is absolutely positioned and ancestor has overflow hidden', function () {
+        const add = (el) => {
+          return $(el).appendTo(cy.$$('body'))
+        }
+
+        cy.$$('body').empty()
+
+        const el = add(`
+          <div id="breaking-container" style="overflow: hidden">
+            <div>
+              <div style="position: absolute; bottom: 5px">
+                <button id="visible-button">Try me</button>
+              </div>
+            </div>
+          </div>
+        `)
+
+        expect(el.find('#visible-button')).to.be.visible
+      })
+
+      it('is visible when element is relatively positioned and parent element is absolutely positioned and ancestor has overflow auto', function () {
+        const add = (el) => {
+          return $(el).appendTo(cy.$$('body'))
+        }
+
+        cy.$$('body').empty()
+
+        const el = add(`
+          <div style="height: 200px; position: relative; display: flex">
+            <div style="border: 5px solid red">
+              <div
+                id="breaking-container"
+                style="overflow: auto; border: 5px solid green"
+              >
+                <div>
+                  <h1>Example</h1>
+                  <div style="position: absolute; bottom: 5px">
+                    <button id="visible-button" style="position: relative">
+                      Try me
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `)
+
+        expect(el.find('#visible-button')).to.be.visible
       })
     })
 

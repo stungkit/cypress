@@ -1064,6 +1064,7 @@ describe('config/src/project/utils', () => {
             browsers: { value: [], from: 'default' },
             chromeWebSecurity: { value: true, from: 'default' },
             clientCertificates: { value: [], from: 'default' },
+            defaultBrowser: { value: null, from: 'default' },
             defaultCommandTimeout: { value: 4000, from: 'default' },
             downloadsFolder: { value: 'cypress/downloads', from: 'default' },
             env: {},
@@ -1161,6 +1162,7 @@ describe('config/src/project/utils', () => {
             browsers: { value: [], from: 'default' },
             chromeWebSecurity: { value: true, from: 'default' },
             clientCertificates: { value: [], from: 'default' },
+            defaultBrowser: { value: null, from: 'default' },
             defaultCommandTimeout: { value: 4000, from: 'default' },
             downloadsFolder: { value: 'cypress/downloads', from: 'default' },
             env: {

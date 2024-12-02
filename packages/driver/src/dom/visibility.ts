@@ -36,7 +36,7 @@ const ensureEl = (el, methodName) => {
   }
 }
 
-const isStrictlyHidden = (el, methodName = 'isStrictlyHidden()', options = { checkOpacity: true }, recurse?) => {
+const isStrictlyHidden = (el: HTMLElement, methodName = 'isStrictlyHidden()', options = { checkOpacity: true }, recurse?) => {
   ensureEl(el, methodName)
   const $el = $jquery.wrap(el)
 
@@ -117,7 +117,7 @@ const isHiddenByAncestors = (el, methodName = 'isHiddenByAncestors()', options =
   return elIsOutOfBoundsOfAncestorsOverflow($el)
 }
 
-const elHasNoEffectiveWidthOrHeight = ($el) => {
+const elHasNoEffectiveWidthOrHeight = ($el: JQuery) => {
   // Is the element's CSS width OR height, including any borders,
   // padding, and vertical scrollbars (if rendered) less than 0?
   //
@@ -140,10 +140,12 @@ const elHasNoEffectiveWidthOrHeight = ($el) => {
     transform = 'none'
   }
 
+  const hasTextContent = !!el.textContent?.trim().length
+
   const width = elClientWidth($el)
   const height = elClientHeight($el)
 
-  return isZeroLengthAndTransformNone(width, height, transform) ||
+  return (isZeroLengthAndTransformNone(width, height, transform) && !hasTextContent) ||
   isZeroLengthAndOverflowHidden(width, height, elHasOverflowHidden($el)) ||
   (el.getClientRects().length <= 0)
 }
@@ -153,21 +155,18 @@ const isZeroLengthAndTransformNone = (width, height, transform) => {
   // we learned that when an element has non-'none' transform style value like "translate(0, 0)",
   // it is visible even with `height: 0` or `width: 0`.
   // That's why we're checking `transform === 'none'` together with elClientWidth/Height.
-
-  return (width <= 0 && transform === 'none') ||
-  (height <= 0 && transform === 'none')
+  return (width <= 0 && transform === 'none') || (height <= 0 && transform === 'none')
 }
 
 const isZeroLengthAndOverflowHidden = (width, height, overflowHidden) => {
-  return (width <= 0 && overflowHidden) ||
-  (height <= 0 && overflowHidden)
+  return (width <= 0 && overflowHidden) || (height <= 0 && overflowHidden)
 }
 
 const elHasNoClientWidthOrHeight = ($el) => {
   return (elClientWidth($el) <= 0) || (elClientHeight($el) <= 0)
 }
 
-const elementBoundingRect = ($el) => $el[0].getBoundingClientRect()
+const elementBoundingRect = ($el: JQuery) => $el[0].getBoundingClientRect()
 
 const elClientHeight = ($el) => elementBoundingRect($el).height
 

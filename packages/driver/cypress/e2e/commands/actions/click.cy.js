@@ -2190,7 +2190,6 @@ describe('src/cy/commands/actions/click', () => {
 
         cy.click()
       })
-      // Array(1).fill().map(()=>
 
       it('throws when any member of the subject isnt visible', function (done) {
         // sometimes the command will timeout early with

@@ -2,6 +2,14 @@
 const { $, dom } = Cypress
 
 describe('src/cypress/dom/visibility', () => {
+  const add = (el) => {
+    return $(el).appendTo(cy.$$('body'))
+  }
+
+  const reasonIs = ($el, str) => {
+    expect(dom.getReasonIsHidden($el)).to.eq(str)
+  }
+
   beforeEach(() => {
     cy.visit('/fixtures/generic.html')
   })
@@ -163,10 +171,6 @@ describe('src/cypress/dom/visibility', () => {
 
   context('hidden/visible overrides', () => {
     beforeEach(function () {
-      const add = (el) => {
-        return $(el).appendTo(cy.$$('body'))
-      }
-
       // ensure all tests run against a scrollable window
       const scrollThisIntoView = add('<div style=`height: 1000px;`></div><div>Should be in view</div>')
 
@@ -908,6 +912,23 @@ describe('src/cypress/dom/visibility', () => {
         expect(this.$elInParentBounds.find('span')).to.be.visible
       })
 
+      it('is hidden when parent overflow clip and height is 0', function () {
+        cy.$$('body').empty()
+
+        const el = add('<div style="height: 0; overflow: clip;"><div id="hidden">I am not visible</div></div>')
+
+        expect(el.find('#hidden')).to.be.hidden
+        reasonIs(el.find('#hidden'), 'This element `<div#hidden>` is not visible because its content is being clipped by one of its parent elements, which has a CSS property of overflow: `hidden`, `clip`, `scroll` or `auto`')
+      })
+
+      it('is visible when parent overflow clip and height is non-0', function () {
+        cy.$$('body').empty()
+
+        const el = add('<div style="height: 5px; overflow: clip;"><div id="visible">I am visible</div></div>')
+
+        expect(el.find('#visible')).to.be.visible
+      })
+
       it('is visible when ancestor is overflow hidden but more distant ancestor is the offset parent', function () {
         expect(this.$elIsOutOfBoundsOfAncestorsOverflowButWithinRelativeAncestor.find('span')).to.be.visible
       })
@@ -937,10 +958,6 @@ describe('src/cypress/dom/visibility', () => {
     })
 
     describe('css transform', () => {
-      const add = (el) => {
-        return $(el).appendTo(cy.$$('body'))
-      }
-
       describe('element visibility by css transform', () => {
         it('is visible when an element is translated a bit', () => {
           const el = add(`<div style="transform: translate(10px, 10px)">Translated</div>`)
@@ -1129,78 +1146,72 @@ describe('src/cypress/dom/visibility', () => {
     })
 
     describe('#getReasonIsHidden', () => {
-      beforeEach(function () {
-        this.reasonIs = ($el, str) => {
-          expect(dom.getReasonIsHidden($el)).to.eq(str)
-        }
-      })
-
       it('has `display: none`', function () {
-        this.reasonIs(this.$displayNone, 'This element `<button>` is not visible because it has CSS property: `display: none`')
+        reasonIs(this.$displayNone, 'This element `<button>` is not visible because it has CSS property: `display: none`')
       })
 
       it('has a parent with `display: none`', function () {
-        this.reasonIs(this.$parentDisplayNone.find('span'), 'This element `<span>` is not visible because its parent `<div#none>` has CSS property: `display: none`')
+        reasonIs(this.$parentDisplayNone.find('span'), 'This element `<span>` is not visible because its parent `<div#none>` has CSS property: `display: none`')
       })
 
       it('has `visibility: hidden`', function () {
-        this.reasonIs(this.$visHidden, 'This element `<ul>` is not visible because it has CSS property: `visibility: hidden`')
+        reasonIs(this.$visHidden, 'This element `<ul>` is not visible because it has CSS property: `visibility: hidden`')
       })
 
       it('has parent with `visibility: hidden`', function () {
-        this.reasonIs(this.$parentVisHidden.find('button'), 'This element `<button>` is not visible because its parent `<div.invis>` has CSS property: `visibility: hidden`')
+        reasonIs(this.$parentVisHidden.find('button'), 'This element `<button>` is not visible because its parent `<div.invis>` has CSS property: `visibility: hidden`')
       })
 
       it('has `visibility: collapse`', function () {
-        this.reasonIs(this.$tableVisCollapse.find('td.collapse'), 'This element `<td.collapse>` is not visible because it has CSS property: `visibility: collapse`')
+        reasonIs(this.$tableVisCollapse.find('td.collapse'), 'This element `<td.collapse>` is not visible because it has CSS property: `visibility: collapse`')
       })
 
       it('has parent with `visibility: collapse`', function () {
-        this.reasonIs(this.$tableVisCollapse.find('tr.collapse td:first'), 'This element `<td>` is not visible because its parent `<tr.collapse>` has CSS property: `visibility: collapse`')
+        reasonIs(this.$tableVisCollapse.find('tr.collapse td:first'), 'This element `<td>` is not visible because its parent `<tr.collapse>` has CSS property: `visibility: collapse`')
       })
 
       it('has `opacity: 0`', function () {
-        this.reasonIs(this.$btnOpacityZero, 'This element `<button>` is not visible because it has CSS property: `opacity: 0`')
+        reasonIs(this.$btnOpacityZero, 'This element `<button>` is not visible because it has CSS property: `opacity: 0`')
       })
 
       it('has parent with `opacity: 0`', function () {
-        this.reasonIs(this.$parentOpacityZero.find('button'), 'This element `<button>` is not visible because its parent `<div>` has CSS property: `opacity: 0`')
+        reasonIs(this.$parentOpacityZero.find('button'), 'This element `<button>` is not visible because its parent `<div>` has CSS property: `opacity: 0`')
       })
 
       it('is detached from the DOM', function () {
-        this.reasonIs(this.$divDetached, 'This element `<div>` is not visible because it is detached from the DOM')
+        reasonIs(this.$divDetached, 'This element `<div>` is not visible because it is detached from the DOM')
       })
 
       it('has effective zero width', function () {
-        this.reasonIs(this.$divNoWidth, 'This element `<div>` is not visible because it has an effective width and height of: `0 x 100` pixels.')
+        reasonIs(this.$divNoWidth, 'This element `<div>` is not visible because it has an effective width and height of: `0 x 100` pixels.')
       })
 
       it('has effective zero height', function () {
-        this.reasonIs(this.$divNoHeight, 'This element `<div>` is not visible because it has an effective width and height of: `50 x 0` pixels.')
+        reasonIs(this.$divNoHeight, 'This element `<div>` is not visible because it has an effective width and height of: `50 x 0` pixels.')
       })
 
       it('has a parent with an effective zero width and overflow: hidden', function () {
-        this.reasonIs(this.$parentNoHeight.find('span'), 'This element `<span>` is not visible because its parent `<div>` has CSS property: `overflow: hidden` and an effective width and height of: `100 x 0` pixels.')
+        reasonIs(this.$parentNoHeight.find('span'), 'This element `<span>` is not visible because its parent `<div>` has CSS property: `overflow: hidden` and an effective width and height of: `100 x 0` pixels.')
       })
 
       it('element sits outside boundaries of parent with overflow clipping', function () {
-        this.reasonIs(this.$elOutOfParentBoundsToRight.find('span'), 'This element `<span>` is not visible because its content is being clipped by one of its parent elements, which has a CSS property of overflow: `hidden`, `scroll` or `auto`')
+        reasonIs(this.$elOutOfParentBoundsToRight.find('span'), 'This element `<span>` is not visible because its content is being clipped by one of its parent elements, which has a CSS property of overflow: `hidden`, `clip`, `scroll` or `auto`')
       })
 
       it('is hidden because it is backface', function () {
         const el = cy.$$('body').append(`<div id="backface-invisible" style="backface-visibility:hidden; transform: rotateX(180deg)">Hello world</div>`)
 
-        this.reasonIs(el.find('#backface-invisible'), `This element \`<div#backface-invisible>\` is not visible because it is rotated and its backface is hidden.`)
+        reasonIs(el.find('#backface-invisible'), `This element \`<div#backface-invisible>\` is not visible because it is rotated and its backface is hidden.`)
       })
 
       it('is hidden by transform', function () {
         const el = cy.$$('body').append(`<div id="invisible-transform" style="transform: scaleX(0)">Hello world</div>`)
 
-        this.reasonIs(el.find('#invisible-transform'), `This element \`<div#invisible-transform>\` is not visible because it is hidden by transform.`)
+        reasonIs(el.find('#invisible-transform'), `This element \`<div#invisible-transform>\` is not visible because it is hidden by transform.`)
       })
 
       it('element is fixed and being covered', function () {
-        this.reasonIs(this.$coveredUpPosFixed.find('#coveredUpPosFixed'), `\This element \`<div#coveredUpPosFixed>\` is not visible because it has CSS property: \`position: fixed\` and it's being covered by another element:\n\n\`<div style="position: fixed; bottom: 0; left: 0">on top</div>\``)
+        reasonIs(this.$coveredUpPosFixed.find('#coveredUpPosFixed'), `\This element \`<div#coveredUpPosFixed>\` is not visible because it has CSS property: \`position: fixed\` and it's being covered by another element:\n\n\`<div style="position: fixed; bottom: 0; left: 0">on top</div>\``)
       })
 
       it('needs scroll', function () {
@@ -1211,13 +1222,13 @@ describe('src/cypress/dom/visibility', () => {
           </div>
         `)
 
-        this.reasonIs(el.find('#needsScroll'), `This element \`<button#needsScroll>\` is not visible because its ancestor has \`position: fixed\` CSS property and it is overflowed by other elements. How about scrolling to the element with \`cy.scrollIntoView()\`?`)
+        reasonIs(el.find('#needsScroll'), `This element \`<button#needsScroll>\` is not visible because its ancestor has \`position: fixed\` CSS property and it is overflowed by other elements. How about scrolling to the element with \`cy.scrollIntoView()\`?`)
       })
 
       it('cannot determine why element is not visible', function () {
         // this element is actually visible
         // but used here as an example that does not match any of the above
-        this.reasonIs(this.$divVisible, 'This element `<div>` is not visible.')
+        reasonIs(this.$divVisible, 'This element `<div>` is not visible.')
       })
     })
   })

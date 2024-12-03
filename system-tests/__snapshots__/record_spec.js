@@ -1124,12 +1124,16 @@ We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
 
+Because you passed the --record flag, this run cannot proceed since it requires a valid response from our servers.
+
 `
 
 exports['e2e record api interaction errors create run 500 when grouping without parallelization errors and exits 1'] = `
 We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
+
+Because you passed the --record flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1141,7 +1145,7 @@ We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1167,7 +1171,7 @@ We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1192,6 +1196,8 @@ exports['e2e record api interaction errors create instance 500 without paralleli
 We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
+
+Because you passed the --record flag, this run cannot proceed since it requires a valid response from our servers.
 
 `
 
@@ -1250,7 +1256,7 @@ We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1409,6 +1415,8 @@ We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
 
+Because you passed the --record flag, this run cannot proceed since it requires a valid response from our servers.
+
 `
 
 exports['e2e record api interaction errors postInstanceTests without parallelization errors and exits 1'] = `
@@ -1434,6 +1442,8 @@ exports['e2e record api interaction errors postInstanceTests without paralleliza
 We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
+
+Because you passed the --record flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: 1
@@ -1464,7 +1474,7 @@ We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1525,6 +1535,8 @@ exports['e2e record api interaction errors postInstanceResults errors and exits 
 We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
+
+Because you passed the --record flag, this run cannot proceed since it requires a valid response from our servers.
 
 `
 
@@ -1707,113 +1719,6 @@ exports['e2e record api interaction errors uploading assets warns but proceeds 1
 
 `
 
-exports['e2e record api interaction errors api retries on error warns and does not create or update instances 1'] = `
-We encountered an unexpected error communicating with our servers.
-
-StatusCodeError: 500 - "Internal Server Error"
-
-We will retry 3 more times in X second(s)...
-
-We encountered an unexpected error communicating with our servers.
-
-StatusCodeError: 500 - "Internal Server Error"
-
-We will retry 2 more times in X second(s)...
-
-We encountered an unexpected error communicating with our servers.
-
-StatusCodeError: 500 - "Internal Server Error"
-
-We will retry 1 more time in X second(s)...
-
-
-====================================================================================================
-
-  (Run Starting)
-
-  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ Cypress:    1.2.3                                                                              │
-  │ Browser:    FooBrowser 88                                                                      │
-  │ Specs:      1 found (record_pass.cy.js)                                                        │
-  │ Searched:   cypress/e2e/record_pass*                                                           │
-  │ Params:     Tag: nightly, Group: foo, Parallel: true                                           │
-  │ Run URL:    https://dashboard.cypress.io/projects/cjvoj7/runs/12                               │
-  └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-We encountered an unexpected error communicating with our servers.
-
-StatusCodeError: 500 - "Internal Server Error"
-
-We will retry 3 more times in X second(s)...
-
-
-────────────────────────────────────────────────────────────────────────────────────────────────────
-                                                                                                    
-  Running:  record_pass.cy.js                                                               (1 of 1)
-  Estimated: X second(s)
-
-
-  record pass
-    ✓ passes
-    - is pending
-
-
-  1 passing
-  1 pending
-
-
-  (Results)
-
-  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ Tests:        2                                                                                │
-  │ Passing:      1                                                                                │
-  │ Failing:      0                                                                                │
-  │ Pending:      1                                                                                │
-  │ Skipped:      0                                                                                │
-  │ Screenshots:  1                                                                                │
-  │ Video:        false                                                                            │
-  │ Duration:     X seconds                                                                        │
-  │ Estimated:    X second(s)                                                                      │
-  │ Spec Ran:     record_pass.cy.js                                                                │
-  └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-  (Screenshots)
-
-  -  /XXX/XXX/XXX/cypress/screenshots/record_pass.cy.js/yay it passes.png                 (400x1022)
-
-
-  (Uploading Cloud Artifacts)
-
-  - Video - Nothing to upload 
-  - Screenshot - 1 kB /XXX/XXX/XXX/cypress/screenshots/record_pass.cy.js/yay it passes.png
-  - Test Replay - Nothing to upload - Test Replay is disabled for this project. Enable Test Replay in Cloud project settings
-
-  Uploading Cloud Artifacts: . . . . .
-
-  (Uploaded Cloud Artifacts)
-
-  - Screenshot - Done Uploading 1 kB in Xm, Ys ZZ.ZZms 1/1 /XXX/XXX/XXX/cypress/screenshots/record_pass.cy.js/yay it passes.png
-
-====================================================================================================
-
-  (Run Finished)
-
-
-       Spec                                              Tests  Passing  Failing  Pending  Skipped  
-  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ ✔  record_pass.cy.js                        XX:XX        2        1        -        1        - │
-  └────────────────────────────────────────────────────────────────────────────────────────────────┘
-    ✔  All specs passed!                        XX:XX        2        1        -        1        -  
-
-
-───────────────────────────────────────────────────────────────────────────────────────────────────────
-                                                                                                       
-  Recorded Run: https://dashboard.cypress.io/projects/cjvoj7/runs/12
-
-
-`
-
 exports['e2e record api interaction errors sendPreflight [F1] socket errors fails after retrying 1'] = `
 We encountered an unexpected error communicating with our servers.
 
@@ -1825,7 +1730,7 @@ We encountered an unexpected error communicating with our servers.
 
 RequestError: Error: socket hang up
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1843,7 +1748,7 @@ We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1861,7 +1766,7 @@ We encountered an unexpected error communicating with our servers.
 
 StatusCodeError: 500 - "Internal Server Error"
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1903,7 +1808,7 @@ We encountered an unexpected error communicating with our servers.
 
 DecryptionError: JWE Recipients missing or incorrect type
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1915,7 +1820,7 @@ We encountered an unexpected error communicating with our servers.
 
 DecryptionError: JWE Recipients missing or incorrect type
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -1927,7 +1832,7 @@ We encountered an unexpected error communicating with our servers.
 
 DecryptionError: General JWE must be an object
 
-Because you passed the --parallel flag, this run cannot proceed because it requires a valid response from our servers.
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
 
 The --group flag you passed was: foo
 The --ciBuildId flag you passed was: ciBuildId123
@@ -4477,5 +4382,90 @@ http://localhost:1234/capture-protocol/upload/?x-amz-credential=XXXXXXXX&x-amz-s
                                                                                                        
   Recorded Run: https://dashboard.cypress.io/projects/cjvoj7/runs/12
 
+
+`
+
+exports['e2e record api interaction errors api retries on error errors and does not create or update instances when parallel 1'] = `
+We encountered an unexpected error communicating with our servers.
+
+StatusCodeError: 500 - "Internal Server Error"
+
+We will retry 3 more times in X second(s)...
+
+We encountered an unexpected error communicating with our servers.
+
+StatusCodeError: 500 - "Internal Server Error"
+
+We will retry 2 more times in X second(s)...
+
+We encountered an unexpected error communicating with our servers.
+
+StatusCodeError: 500 - "Internal Server Error"
+
+We will retry 1 more time in X second(s)...
+
+
+====================================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:    1.2.3                                                                              │
+  │ Browser:    FooBrowser 88                                                                      │
+  │ Specs:      1 found (record_pass.cy.js)                                                        │
+  │ Searched:   cypress/e2e/record_pass*                                                           │
+  │ Params:     Tag: nightly, Group: foo, Parallel: true                                           │
+  │ Run URL:    https://dashboard.cypress.io/projects/cjvoj7/runs/12                               │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+We encountered an unexpected error communicating with our servers.
+
+StatusCodeError: 500 - "Internal Server Error"
+
+Because you passed the --parallel flag, this run cannot proceed since it requires a valid response from our servers.
+
+The --group flag you passed was: foo
+The --ciBuildId flag you passed was: ciBuildId123
+
+`
+
+exports['e2e record api interaction errors api retries on error errors and does not create or update instances when recording and not parallel 1'] = `
+We encountered an unexpected error communicating with our servers.
+
+StatusCodeError: 500 - "Internal Server Error"
+
+We will retry 3 more times in X second(s)...
+
+We encountered an unexpected error communicating with our servers.
+
+StatusCodeError: 500 - "Internal Server Error"
+
+We will retry 2 more times in X second(s)...
+
+We encountered an unexpected error communicating with our servers.
+
+StatusCodeError: 500 - "Internal Server Error"
+
+We will retry 1 more time in X second(s)...
+
+
+====================================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:    1.2.3                                                                              │
+  │ Browser:    FooBrowser 88                                                                      │
+  │ Specs:      1 found (record_pass.cy.js)                                                        │
+  │ Searched:   cypress/e2e/record_pass*                                                           │
+  │ Params:     Tag: nightly, Group: false, Parallel: false                                        │
+  │ Run URL:    https://dashboard.cypress.io/projects/cjvoj7/runs/12                               │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+We encountered an unexpected error communicating with our servers.
+
+StatusCodeError: 500 - "Internal Server Error"
+
+Because you passed the --record flag, this run cannot proceed since it requires a valid response from our servers.
 
 `

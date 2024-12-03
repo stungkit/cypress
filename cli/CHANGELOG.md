@@ -1,7 +1,7 @@
 <!-- See the ../guides/writing-the-cypress-changelog.md for details on writing the changelog. -->
 ## 14.0.0
 
-_Released 12/3/2024 (PENDING)_
+_Released 12/17/2024 (PENDING)_
 
 **Breaking Changes:**
 
@@ -61,11 +61,12 @@ in this [GitHub issue](https://github.com/cypress-io/cypress/issues/30447). Addr
 
 ## 13.16.1
 
-_Released 11/26/2024 (PENDING)_
+_Released 12/03/2024_
 
 **Bugfixes:**
 
 - Support multiple imports of one module with multiple lines. Addressed in [#30314](https://github.com/cypress-io/cypress/pull/30314).
+- During recorded or parallel runs, execution will fail if Cypress is unable to confirm the creation of an instance instead of skipping the spec. Addresses [#30628](https://github.com/cypress-io/cypress/issues/30628).
 
 ## 13.16.0
 

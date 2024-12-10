@@ -65,6 +65,15 @@ in this [GitHub issue](https://github.com/cypress-io/cypress/issues/30447). Addr
 - Updated `jQuery` from `3.4.1` to `3.7.1`. Addressed in [#30345](https://github.com/cypress-io/cypress/pull/30345).
 - Updated `react` from `17.0.2` to `18.3.1` and `react-dom` from `17.0.2` to `18.3.1`. Addresses [#30511](https://github.com/cypress-io/cypress/issues/30511).
 
+## 13.16.2
+
+_Released 12/17/2024 (PENDING)_
+
+**Bugfixes:**
+
+- Fixed an issue where targets may hang if `Network.enable` is not implemented for the target. Addresses [#29876](https://github.com/cypress-io/cypress/issues/29876).
+- Updated Firefox `userChrome.css` to correctly hide the toolbox during headless mode. Addresses [#30721](https://github.com/cypress-io/cypress/issues/30721).
+
 ## 13.16.1
 
 _Released 12/03/2024_

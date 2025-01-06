@@ -230,6 +230,12 @@ const driverConfigOptions: Array<DriverConfigOption> = [
     isExperimental: true,
     requireRestartOnChange: 'server',
   }, {
+    name: 'injectDocumentDomain',
+    defaultValue: false,
+    validation: validate.isBoolean,
+    requireRestartOnChange: 'server',
+  },
+  {
     name: 'experimentalSkipDomainInjection',
     defaultValue: null,
     validation: validate.isNullOrArrayOfStrings,
@@ -614,7 +620,7 @@ export const options: Array<DriverConfigOption | RuntimeConfigOption> = [
 ]
 
 /**
- * Values not allowed in 10.X+ in the root, e2e and component config
+ * Values not allowed in 10.X+ in the root, e2e or component config
  */
 export const breakingOptions: Readonly<BreakingOption[]> = [
   {
@@ -732,14 +738,14 @@ export const breakingRootOptions: Array<BreakingOption> = [
     testingTypes: ['e2e'],
   },
   {
-    name: 'experimentalOriginDependencies',
-    errorKey: 'EXPERIMENTAL_ORIGIN_DEPENDENCIES_E2E_ONLY',
+    name: 'experimentalSkipDomainInjection',
+    errorKey: 'EXPERIMENTAL_USE_DEFAULT_DOCUMENT_DOMAIN_E2E_ONLY',
     isWarning: false,
     testingTypes: ['e2e'],
   },
   {
-    name: 'experimentalSkipDomainInjection',
-    errorKey: 'EXPERIMENTAL_USE_DEFAULT_DOCUMENT_DOMAIN_E2E_ONLY',
+    name: 'experimentalOriginDependencies',
+    errorKey: 'EXPERIMENTAL_ORIGIN_DEPENDENCIES_E2E_ONLY',
     isWarning: false,
     testingTypes: ['e2e'],
   },
@@ -767,6 +773,16 @@ export const testingTypeBreakingOptions: { e2e: Array<BreakingOption>, component
       name: 'justInTimeCompile',
       errorKey: 'JIT_COMPONENT_TESTING',
       isWarning: false,
+    },
+    {
+      name: 'experimentalSkipDomainInjection',
+      errorKey: 'EXPERIMENTAL_SKIP_DOMAIN_INJECTION',
+      isWarning: false,
+    },
+    {
+      name: 'injectDocumentDomain',
+      errorKey: 'INJECT_DOCUMENT_DOMAIN_DEPRECATION',
+      isWarning: true,
     },
   ],
   component: [
@@ -798,6 +814,11 @@ export const testingTypeBreakingOptions: { e2e: Array<BreakingOption>, component
     {
       name: 'experimentalSkipDomainInjection',
       errorKey: 'EXPERIMENTAL_USE_DEFAULT_DOCUMENT_DOMAIN_E2E_ONLY',
+      isWarning: false,
+    },
+    {
+      name: 'injectDocumentDomain',
+      errorKey: 'INJECT_DOCUMENT_DOMAIN_E2E_ONLY',
       isWarning: false,
     },
   ],

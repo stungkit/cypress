@@ -26,6 +26,7 @@ exports['module api and after:run results'] = `
     "experimentalRunAllSpecs": false,
     "experimentalMemoryManagement": false,
     "experimentalModifyObstructiveThirdPartyCode": false,
+    "injectDocumentDomain": false,
     "experimentalSkipDomainInjection": null,
     "experimentalOriginDependencies": false,
     "experimentalSourceRewriting": false,
@@ -197,7 +198,7 @@ exports['module api and after:run results'] = `
               "state": "failed"
             }
           ],
-          "displayError": ""AssertionError: Timed out retrying after 10ms: expected true to be false\\n     <stack lines>"
+          "displayError": "AssertionError: Timed out retrying after 10ms: expected true to be false <stack lines>",
           "duration": 100,
           "state": "failed",
           "title": [
@@ -293,7 +294,7 @@ exports['module api and after:run results'] = `
               "state": "failed"
             }
           ],
-          "displayError": ""AssertionError: Timed out retrying after 10ms: expected true to be false\\n     <stack lines>"
+          "displayError": "AssertionError: Timed out retrying after 10ms: expected true to be false <stack lines>",
           "duration": 100,
           "state": "failed",
           "title": [
@@ -321,7 +322,7 @@ exports['module api and after:run results'] = `
               "state": "failed"
             }
           ],
-          "displayError": ""Error: failure in beforeEach\\n\\nBecause this error occurred during a \`before each\` hook we are skipping the remaining tests in the current suite: \`has skipped tests\`\\n     <stack lines>"
+          "displayError": "Error: failure in beforeEach\\n\\nBecause this error occurred during a \`before each\` hook we are skipping the remaining tests in the current suite: \`has skipped tests\` <stack lines>",
           "duration": 100,
           "state": "failed",
           "title": [
@@ -454,7 +455,7 @@ exports['after:spec results'] = `
             "state": "failed"
           }
         ],
-        "displayError": ""AssertionError: Timed out retrying after 10ms: expected true to be false\\n     <stack lines>"
+        "displayError": "AssertionError: Timed out retrying after 10ms: expected true to be false <stack lines>",
         "duration": 100,
         "state": "failed",
         "title": [
@@ -482,7 +483,7 @@ exports['after:spec results'] = `
             "state": "failed"
           }
         ],
-        "displayError": ""Error: failure in beforeEach\\n\\nBecause this error occurred during a \`before each\` hook we are skipping the remaining tests in the current suite: \`has skipped tests\`\\n     <stack lines>"
+        "displayError": "Error: failure in beforeEach\\n\\nBecause this error occurred during a \`before each\` hook we are skipping the remaining tests in the current suite: \`has skipped tests\` <stack lines>",
         "duration": 100,
         "state": "failed",
         "title": [

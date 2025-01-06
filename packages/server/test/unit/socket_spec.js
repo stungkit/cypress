@@ -36,13 +36,12 @@ describe('lib/socket', () => {
 
     this.todosPath = Fixtures.projectPath('todos')
 
-    this.server = new ServerBase()
-
     await ctx.actions.project.setCurrentProjectAndTestingTypeForTestSetup(this.todosPath)
 
     return ctx.lifecycleManager.getFullInitialConfig()
     .then((cfg) => {
       this.cfg = cfg
+      this.server = new ServerBase(cfg)
     })
   })
 

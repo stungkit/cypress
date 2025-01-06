@@ -1421,5 +1421,23 @@ describe('visual error templates', () => {
         default: [{ invalidHeaderValue: 'Value' }, 'GET', 'http://localhost:8080', err],
       }
     },
+
+    EXPERIMENTAL_SKIP_DOMAIN_INJECTION: () => {
+      return {
+        default: [],
+      }
+    },
+
+    INJECT_DOCUMENT_DOMAIN_DEPRECATION: () => {
+      return {
+        default: [],
+      }
+    },
+
+    INJECT_DOCUMENT_DOMAIN_E2E_ONLY: () => {
+      return {
+        default: [],
+      }
+    },
   })
 })

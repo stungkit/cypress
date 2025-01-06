@@ -31,10 +31,11 @@ const hasCrossFrameStacks = (specWindow) => {
   return topStack === specStack
 }
 
-const stackWithContentAppended = (err, stack) => {
+const stackWithContentAppended = (err, stack: string | undefined) => {
+  const usableStack = stack ?? ''
   const appendToStack = err.appendToStack
 
-  if (!appendToStack || !appendToStack.content) return stack
+  if (!appendToStack || !appendToStack.content) return usableStack
 
   delete err.appendToStack
 
@@ -43,7 +44,7 @@ const stackWithContentAppended = (err, stack) => {
   const normalizedContent = normalizeStackIndentation(appendToStack.content)
   const content = $utils.indent(normalizedContent, 2)
 
-  return `${stack}\n\n${appendToStack.title}:\n${content}`
+  return `${usableStack}\n\n${appendToStack.title}:\n${content}`
 }
 
 const stackWithLinesRemoved = (stack, cb) => {
@@ -68,6 +69,13 @@ const stackWithReplacementMarkerLineRemoved = (stack) => {
   return stackWithLinesRemoved(stack, (lines) => {
     return _.reject(lines, (line) => _.includes(line, STACK_REPLACEMENT_MARKER))
   })
+}
+
+const stackPriorToReplacementMarker = (stack) => {
+  return _.chain(stack).split('\n')
+  .takeWhile((line) => !line.includes(STACK_REPLACEMENT_MARKER))
+  .join('\n')
+  .value()
 }
 
 export type StackAndCodeFrameIndex = {
@@ -109,11 +117,10 @@ const getInvocationDetails = (specWindow, config) => {
     // note: specWindow.Cypress can be undefined or null
     // if the user quickly reloads the tests multiple times
 
-    // firefox throws a different stack than chromium
-    // which includes stackframes from cypress_runner.js.
-    // So we drop the lines until we get to the spec stackframe (includes __cypress/tests)
-    if (specWindow.Cypress && specWindow.Cypress.isBrowser('firefox')) {
-      stack = stackWithLinesDroppedFromMarker(stack, '__cypress/tests', true)
+    // firefox and chrome throw stacks that include lines from cypress
+    // So we drop the lines until we get to the spec stackframe (includes __cypress)
+    if (specWindow.Cypress) {
+      stack = stackWithLinesDroppedFromMarker(stack, '__cypress', true)
     }
 
     const details: InvocationDetails = getSourceDetailsForFirstLine(stack, config('projectRoot')) || {};
@@ -512,6 +519,7 @@ export default {
   stackWithLinesDroppedFromMarker,
   stackWithoutMessage,
   stackWithReplacementMarkerLineRemoved,
+  stackPriorToReplacementMarker,
   stackWithUserInvocationStackSpliced,
   captureUserInvocationStack,
   getInvocationDetails,

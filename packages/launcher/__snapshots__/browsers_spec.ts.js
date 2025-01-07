@@ -10,7 +10,6 @@ exports['browsers returns the expected list of browsers 1'] = [
       'chrome',
       'google-chrome-stable',
     ],
-    'minSupportedVersion': 64,
   },
   {
     'name': 'chrome',
@@ -19,7 +18,6 @@ exports['browsers returns the expected list of browsers 1'] = [
     'displayName': 'Chrome Beta',
     'versionRegex': {},
     'binary': 'google-chrome-beta',
-    'minSupportedVersion': 64,
   },
   {
     'name': 'chrome',
@@ -28,7 +26,6 @@ exports['browsers returns the expected list of browsers 1'] = [
     'displayName': 'Chrome Canary',
     'versionRegex': {},
     'binary': 'google-chrome-canary',
-    'minSupportedVersion': 64,
   },
   {
     'name': 'chrome-for-testing',
@@ -37,7 +34,6 @@ exports['browsers returns the expected list of browsers 1'] = [
     'displayName': 'Chrome for Testing',
     'versionRegex': {},
     'binary': 'chrome',
-    'minSupportedVersion': 64,
   },
   {
     'name': 'chromium',
@@ -49,7 +45,6 @@ exports['browsers returns the expected list of browsers 1'] = [
       'chromium-browser',
       'chromium',
     ],
-    'minSupportedVersion': 64,
   },
   {
     'name': 'firefox',
@@ -58,7 +53,6 @@ exports['browsers returns the expected list of browsers 1'] = [
     'displayName': 'Firefox',
     'versionRegex': {},
     'binary': 'firefox',
-    'minSupportedVersion': 86,
   },
   {
     'name': 'firefox',
@@ -70,7 +64,6 @@ exports['browsers returns the expected list of browsers 1'] = [
       'firefox-developer-edition',
       'firefox',
     ],
-    'minSupportedVersion': 86,
   },
   {
     'name': 'firefox',
@@ -82,7 +75,6 @@ exports['browsers returns the expected list of browsers 1'] = [
       'firefox-nightly',
       'firefox-trunk',
     ],
-    'minSupportedVersion': 86,
   },
   {
     'name': 'edge',
@@ -94,7 +86,6 @@ exports['browsers returns the expected list of browsers 1'] = [
       'edge',
       'microsoft-edge',
     ],
-    'minSupportedVersion': 79,
   },
   {
     'name': 'edge',
@@ -106,7 +97,6 @@ exports['browsers returns the expected list of browsers 1'] = [
       'edge-beta',
       'microsoft-edge-beta',
     ],
-    'minSupportedVersion': 79,
   },
   {
     'name': 'edge',
@@ -118,7 +108,6 @@ exports['browsers returns the expected list of browsers 1'] = [
       'edge-canary',
       'microsoft-edge-canary',
     ],
-    'minSupportedVersion': 79,
   },
   {
     'name': 'edge',
@@ -130,6 +119,5 @@ exports['browsers returns the expected list of browsers 1'] = [
       'edge-dev',
       'microsoft-edge-dev',
     ],
-    'minSupportedVersion': 79,
   },
 ]

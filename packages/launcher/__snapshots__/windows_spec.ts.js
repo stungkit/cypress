@@ -10,7 +10,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
       'chrome',
       'google-chrome-stable',
     ],
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
     'version': '1.2.3',
     'findAppParams': {
@@ -27,7 +26,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
     'displayName': 'Chrome Beta',
     'versionRegex': {},
     'binary': 'google-chrome-beta',
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files (x86)/Google/Chrome Beta/Application/chrome.exe',
     'version': '6.7.8',
     'findAppParams': {
@@ -44,7 +42,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
     'displayName': 'Chrome Canary',
     'versionRegex': {},
     'binary': 'google-chrome-canary',
-    'minSupportedVersion': 64,
     'path': 'C:/Users/flotwig/AppData/Local/Google/Chrome SxS/Application/chrome.exe',
     'version': '3.4.5',
     'findAppParams': {
@@ -61,7 +58,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
     'displayName': 'Chrome for Testing',
     'versionRegex': {},
     'binary': 'chrome',
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files/Google/Chrome for Testing/chrome.exe',
     'version': '1.2.3',
     'findAppParams': {
@@ -81,7 +77,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
       'chromium-browser',
       'chromium',
     ],
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files (x86)/Google/chrome-win32/chrome.exe',
     'version': '2.3.4',
     'findAppParams': {
@@ -98,7 +93,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
     'displayName': 'Firefox',
     'versionRegex': {},
     'binary': 'firefox',
-    'minSupportedVersion': 86,
     'path': 'C:/Program Files/Mozilla Firefox/firefox.exe',
     'version': '72',
     'findAppParams': {
@@ -118,7 +112,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
       'firefox-developer-edition',
       'firefox',
     ],
-    'minSupportedVersion': 86,
     'path': 'C:/Program Files (x86)/Firefox Developer Edition/firefox.exe',
     'version': '73',
     'findAppParams': {
@@ -138,7 +131,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
       'firefox-nightly',
       'firefox-trunk',
     ],
-    'minSupportedVersion': 86,
     'path': 'C:/Program Files/Firefox Nightly/firefox.exe',
     'version': '74',
     'findAppParams': {
@@ -158,7 +150,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
       'edge',
       'microsoft-edge',
     ],
-    'minSupportedVersion': 79,
     'path': 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
     'version': '11',
     'findAppParams': {
@@ -178,7 +169,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
       'edge-beta',
       'microsoft-edge-beta',
     ],
-    'minSupportedVersion': 79,
     'path': 'C:/Program Files (x86)/Microsoft/Edge Beta/Application/msedge.exe',
     'version': '12',
     'findAppParams': {
@@ -198,7 +188,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
       'edge-canary',
       'microsoft-edge-canary',
     ],
-    'minSupportedVersion': 79,
     'path': 'C:/Users/flotwig/AppData/Local/Microsoft/Edge SxS/Application/msedge.exe',
     'version': '14',
     'findAppParams': {
@@ -218,7 +207,6 @@ exports['windows browser detection detects browsers as expected 1'] = [
       'edge-dev',
       'microsoft-edge-dev',
     ],
-    'minSupportedVersion': 79,
     'path': 'C:/Program Files (x86)/Microsoft/Edge Dev/Application/msedge.exe',
     'version': '13',
     'findAppParams': {
@@ -238,7 +226,6 @@ exports['windows browser detection detects Chrome Beta 64-bit install 1'] = [
     'displayName': 'Chrome Beta',
     'versionRegex': {},
     'binary': 'google-chrome-beta',
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files/Google/Chrome Beta/Application/chrome.exe',
     'version': '9.0.1',
     'findAppParams': {
@@ -262,7 +249,6 @@ exports['windows browser detection detects Chrome 64-bit install 1'] = [
       'chrome',
       'google-chrome-stable',
     ],
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files/Google/Chrome/Application/chrome.exe',
     'version': '4.4.4',
     'findAppParams': {
@@ -282,7 +268,6 @@ exports['windows browser detection detects Chrome for Testing 32-bit install 1']
     'displayName': 'Chrome for Testing',
     'versionRegex': {},
     'binary': 'chrome',
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files (x86)/Google/Chrome for Testing/chrome.exe',
     'version': '5.5.5',
     'findAppParams': {
@@ -302,7 +287,6 @@ exports['windows browser detection detects Firefox local installs 1'] = [
     'displayName': 'Firefox',
     'versionRegex': {},
     'binary': 'firefox',
-    'minSupportedVersion': 86,
     'path': 'C:/Users/flotwig/AppData/Local/Mozilla Firefox/firefox.exe',
     'version': '100',
     'findAppParams': {
@@ -322,7 +306,6 @@ exports['windows browser detection detects Firefox local installs 1'] = [
       'firefox-developer-edition',
       'firefox',
     ],
-    'minSupportedVersion': 86,
     'path': 'C:/Users/flotwig/AppData/Local/Firefox Developer Edition/firefox.exe',
     'version': '300',
     'findAppParams': {
@@ -342,7 +325,6 @@ exports['windows browser detection detects Firefox local installs 1'] = [
       'firefox-nightly',
       'firefox-trunk',
     ],
-    'minSupportedVersion': 86,
     'path': 'C:/Users/flotwig/AppData/Local/Firefox Nightly/firefox.exe',
     'version': '200',
     'findAppParams': {
@@ -365,7 +347,6 @@ exports['windows browser detection detects Chromium 64-bit install 1'] = [
       'chromium-browser',
       'chromium',
     ],
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files/Google/chrome-win/chrome.exe',
     'version': '6.6.6',
     'findAppParams': {
@@ -388,7 +369,6 @@ exports['windows browser detection detects Chromium 32-bit install in Chromium f
       'chromium-browser',
       'chromium',
     ],
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files (x86)/Google/Chromium/chrome.exe',
     'version': '7.7.7',
     'findAppParams': {
@@ -411,7 +391,6 @@ exports['windows browser detection detects Chromium 64-bit install in Chromium f
       'chromium-browser',
       'chromium',
     ],
-    'minSupportedVersion': 64,
     'path': 'C:/Program Files/Google/Chromium/chrome.exe',
     'version': '8.8.8',
     'findAppParams': {

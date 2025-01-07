@@ -10,7 +10,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
       'chrome',
       'google-chrome-stable',
     ],
-    'minSupportedVersion': 64,
     'path': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     'version': 'someVersion',
     'findAppParams': {
@@ -27,7 +26,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
     'displayName': 'Chrome Beta',
     'versionRegex': {},
     'binary': 'google-chrome-beta',
-    'minSupportedVersion': 64,
     'path': '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta',
     'version': 'someVersion',
     'findAppParams': {
@@ -44,7 +42,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
     'displayName': 'Chrome Canary',
     'versionRegex': {},
     'binary': 'google-chrome-canary',
-    'minSupportedVersion': 64,
     'path': '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
     'version': 'someVersion',
     'findAppParams': {
@@ -61,7 +58,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
     'displayName': 'Chrome for Testing',
     'versionRegex': {},
     'binary': 'chrome',
-    'minSupportedVersion': 64,
     'path': '/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
     'version': 'someVersion',
     'findAppParams': {
@@ -81,7 +77,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
       'chromium-browser',
       'chromium',
     ],
-    'minSupportedVersion': 64,
     'path': '/Applications/Chromium.app/Contents/MacOS/Chromium',
     'version': 'someVersion',
     'findAppParams': {
@@ -98,7 +93,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
     'displayName': 'Firefox',
     'versionRegex': {},
     'binary': 'firefox',
-    'minSupportedVersion': 86,
     'path': '/Applications/Firefox.app/Contents/MacOS/firefox',
     'version': 'someVersion',
     'findAppParams': {
@@ -118,7 +112,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
       'firefox-developer-edition',
       'firefox',
     ],
-    'minSupportedVersion': 86,
     'path': '/Applications/Firefox Developer Edition.app/Contents/MacOS/firefox',
     'version': 'someVersion',
     'findAppParams': {
@@ -138,7 +131,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
       'firefox-nightly',
       'firefox-trunk',
     ],
-    'minSupportedVersion': 86,
     'path': '/Applications/Firefox Nightly.app/Contents/MacOS/firefox',
     'version': 'someVersion',
     'findAppParams': {
@@ -158,7 +150,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
       'edge',
       'microsoft-edge',
     ],
-    'minSupportedVersion': 79,
     'path': '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
     'version': 'someVersion',
     'findAppParams': {
@@ -178,7 +169,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
       'edge-beta',
       'microsoft-edge-beta',
     ],
-    'minSupportedVersion': 79,
     'path': '/Applications/Microsoft Edge Beta.app/Contents/MacOS/Microsoft Edge Beta',
     'version': 'someVersion',
     'findAppParams': {
@@ -198,7 +188,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
       'edge-canary',
       'microsoft-edge-canary',
     ],
-    'minSupportedVersion': 79,
     'path': '/Applications/Microsoft Edge Canary.app/Contents/MacOS/Microsoft Edge Canary',
     'version': 'someVersion',
     'findAppParams': {
@@ -218,7 +207,6 @@ exports['darwin browser detection detects browsers as expected 1'] = [
       'edge-dev',
       'microsoft-edge-dev',
     ],
-    'minSupportedVersion': 79,
     'path': '/Applications/Microsoft Edge Dev.app/Contents/MacOS/Microsoft Edge Dev',
     'version': 'someVersion',
     'findAppParams': {

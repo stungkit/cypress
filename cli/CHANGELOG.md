@@ -59,6 +59,7 @@ in this [GitHub issue](https://github.com/cypress-io/cypress/issues/30447). Addr
 **Misc:**
 
 - Removed some component testing API stubs that were removed in [Cypress v11.0.0](https://docs.cypress.io/app/references/migration-guide#Component-Testing-Updates). Addressed in [#30696](https://github.com/cypress-io/cypress/pull/30696). Addresses [#30623](https://github.com/cypress-io/cypress/issues/30623).
+- Updated to use Cypress design system browser icons. Addressed in [#30790](https://github.com/cypress-io/cypress/pull/30790).
 
 **Dependency Updates:**
 

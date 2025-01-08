@@ -1,3 +1,20 @@
+# [@cypress/vite-dev-server-v6.0.0](https://github.com/cypress-io/cypress/compare/@cypress/vite-dev-server-v5.2.1...@cypress/vite-dev-server-v6.0.0) (2025-01-08)
+
+
+### breaking
+
+* release version 6.0.0 of @cypress/vite-dev-server. ([dd21af5](https://github.com/cypress-io/cypress/commit/dd21af581240dcd2f2b0d5663c75e018864f888e))
+
+
+### Features
+
+* component testing now supports vite 6 [run ci] ([#30679](https://github.com/cypress-io/cypress/issues/30679)) ([4efd932](https://github.com/cypress-io/cypress/commit/4efd932eac4a0936d67fe8f62add1d81b92e0121))
+
+
+### BREAKING CHANGES
+
+* Cypress 14 drops support forVite 2-3. Vite 4 and up is supported.
+
 # [@cypress/vite-dev-server-v5.2.1](https://github.com/cypress-io/cypress/compare/@cypress/vite-dev-server-v5.2.0...@cypress/vite-dev-server-v5.2.1) (2024-11-19)
 
 

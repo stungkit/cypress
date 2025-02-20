@@ -61,7 +61,7 @@ export const findParent = (el, condition) => {
   return collectParent(el)
 }
 
-export const getFirstParentWithTagName = ($el, tagName) => {
+export const getFirstParentWithTagName = ($el: JQuery, tagName: string) => {
   if (isUndefinedOrHTMLBodyDoc($el) || !tagName) {
     return null
   }
@@ -119,7 +119,7 @@ const priorityElement = 'input[type=\'submit\'], button, a, label'
 export const getFirstDeepestElement = ($el: JQuery, index = 0) => {
   // iterate through all of the elements in pairs
   // and check if the next item in the array is a
-  // descedent of the current. if it is continue
+  // descendent of the current. if it is continue
   // to recurse. if not, or there is no next item
   // then return the current
   const $current = $el.slice(index, index + 1)
@@ -171,15 +171,21 @@ export const elementFromPoint = (doc, x, y): HTMLElement => {
  * By DOM Hierarchy
  * Compares two elements to see what their relationship is
  */
-export const isAncestor = ($el, $maybeAncestor) => {
+export const isAncestor = ($el: JQuery<HTMLElement>, $maybeAncestor: JQuery<HTMLElement>) => {
   return $jquery.wrap(getAllParents($el[0])).index($maybeAncestor) >= 0
 }
 
-export const isChild = ($el, $maybeChild) => {
-  return $el.children().index($maybeChild) >= 0
+export const isChild = ($el: JQuery<HTMLElement>, $maybeChild: JQuery<HTMLElement>) => {
+  let children = $el.children()
+
+  if (children.length && children[0].nodeName === 'SHADOW-ROOT') {
+    return isDescendent($el, $maybeChild)
+  }
+
+  return children.index($maybeChild) >= 0
 }
 
-export const isDescendent = ($el1, $el2) => {
+export const isDescendent = ($el1: JQuery<HTMLElement>, $el2?: JQuery<HTMLElement>) => {
   if (!$el2) {
     return false
   }
@@ -233,12 +239,12 @@ export const getElements = ($el) => {
  *
  *   $.expr[':']['cy-contains'] = $.expr.createPseudo()
  *
- * is equivelent to
+ * is equivalent to
  *
  *   Sizzle.selectors.pseudos['cy-contains'] = Sizzle.selectors.createPseudo()
  *
  * in the documentation linked above. $.expr[':'] is jquery's alias for
- * Sizzle.selectors.psuedos.
+ * Sizzle.selectors.pseudos.
  *
  * These custom expressions are used exclusively by cy.contains; see
  * `getContainsSelector` below.
@@ -322,7 +328,7 @@ export const getContainsSelector = (text, filter = '', options: {
   return selectors.join()
 }
 
-export const getInputFromLabel = ($el) => {
+export const getInputFromLabel = ($el: JQuery<HTMLElement>) => {
   if (!$el.is('label')) {
     return $([])
   }

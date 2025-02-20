@@ -7,16 +7,18 @@ const apiUrl = app_config[process.env.CYPRESS_CONFIG_ENV || process.env.CYPRESS_
 const CLOUD_ENDPOINTS = {
   api: '',
   auth: 'auth',
-  me: 'me',
   ping: 'ping',
   runs: 'runs',
   instances: 'runs/:id/instances',
   instanceTests: 'instances/:id/tests',
   instanceResults: 'instances/:id/results',
   instanceStdout: 'instances/:id/stdout',
-  projects: 'projects',
-  project: 'projects/:id',
+  instanceArtifacts: 'instances/:id/artifacts',
+  captureProtocolErrors: 'capture-protocol/errors',
+  studio: 'studio/bundle/current.tgz',
+  studioErrors: 'studio/errors',
   exceptions: 'exceptions',
+  telemetry: 'telemetry',
 } as const
 
 const parseArgs = function (url, args: any[] = []) {
@@ -60,5 +62,7 @@ const makeRoutes = (baseUrl: string, routes: typeof CLOUD_ENDPOINTS) => {
 const apiRoutes = makeRoutes(apiUrl, CLOUD_ENDPOINTS)
 
 module.exports = {
+  apiUrl,
   apiRoutes,
+  makeRoutes: (baseUrl) => makeRoutes(baseUrl, CLOUD_ENDPOINTS),
 }

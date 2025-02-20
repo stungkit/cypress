@@ -34,6 +34,7 @@ const setGlobals = read('set-globals')
  * that are bundled
  * @property includeStrictVerifiers see {@link GenerationOpts} includeStrictVerifiers
  * @property nodeEnv see {@link GenerationOpts} nodeEnv
+ * @property cypressInternalEnv see {@link GenerationOpts} cypressInternalEnv
  * @property basedir the base dir of the project for which we are creating the
  * snapshot
  * @property sourceMap {@link Buffer} with content of raw sourcemaps
@@ -47,6 +48,7 @@ export type BlueprintConfig = {
   customRequireDefinitions: Buffer
   includeStrictVerifiers: boolean
   nodeEnv: string
+  cypressInternalEnv: string
   basedir: string
   sourceMap: Buffer | undefined
   processedSourceMapPath: string | undefined
@@ -64,7 +66,7 @@ const pathSep = path.sep === '\\' ? '\\\\' : path.sep
  * When rendering the snapshot script we take care of the following
  * (in order of occurrence in the rendered script):
  *
- * 1. We embedd the path separator so that we have it available inside the
+ * 1. We embed the path separator so that we have it available inside the
  *    snapshot without having to refer to the `path` module
  *
  * 2. We also include helper methods like `cannotAccess` which are invoked
@@ -99,6 +101,7 @@ export function scriptFromBlueprint (config: BlueprintConfig): {
     customRequireDefinitions,
     includeStrictVerifiers,
     nodeEnv,
+    cypressInternalEnv,
     basedir,
     sourceMap,
     supportTypeScript,
@@ -141,6 +144,7 @@ export function scriptFromBlueprint (config: BlueprintConfig): {
       env: {
         value: {
           NODE_ENV: '${nodeEnv}',
+          CYPRESS_INTERNAL_ENV: '${cypressInternalEnv}',
         },
         enumerable: false,
       },

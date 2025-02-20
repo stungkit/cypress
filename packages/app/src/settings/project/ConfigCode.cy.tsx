@@ -1,5 +1,6 @@
 import ConfigCode from './ConfigCode.vue'
 import config from '@packages/frontend-shared/cypress/fixtures/config.json'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 
 const selector = '[data-cy=code]'
@@ -14,6 +15,26 @@ const objectTest = {
 
 describe('<ConfigCode />', () => {
   context('with mock values', () => {
+    it('shows empty object in one line', () => {
+      cy.mount(() => (<div class="p-12 overflow-auto">
+        <ConfigCode data-cy="code" gql={{
+          id: 'project-id',
+          configFile: 'cypress.config.js',
+          configFileAbsolutePath: '/path/to/cypress.config.js',
+          config: [{
+            field: 'emptyObjectTest',
+            value: {},
+            from: 'plugin',
+          }],
+        }} />
+      </div>))
+
+      cy.contains(`emptyObjectTest:`).should('contain.text', '{},')
+      cy.contains(`emptyObjectTest:`).within(($subject) => {
+        cy.wrap($subject).get('br').should('have.length', 1)
+      })
+    })
+
     it('shows the arrayTest nicely', () => {
       cy.mount(() => (<div class="p-12 overflow-auto">
         <ConfigCode data-cy="code" gql={{
@@ -54,9 +75,6 @@ describe('<ConfigCode />', () => {
         .should('be.visible')
         .should('contain.text', 'plugin')
       })
-
-      // Take a snapshot of the last case
-      cy.percySnapshot()
     })
 
     it('shows the objectTest nicely', () => {
@@ -98,12 +116,10 @@ describe('<ConfigCode />', () => {
         valElement.realHover()
 
         cy.get('.v-popper__popper--shown')
+        .should('have.length', 1)
         .should('be.visible')
         .should('contain.text', 'env')
       })
-
-      // Take a snapshot of the last case
-      cy.percySnapshot()
     })
   })
 
@@ -175,11 +191,8 @@ describe('<ConfigCode />', () => {
           browser.displayName && cy.contains(`displayName: '${browser.displayName}',`)
           browser.version && cy.contains(`version: '${browser.version}',`)
           browser.path && cy.contains(`path: '${browser.path}',`)
-          browser.minSupportedVersion && cy.contains(`minSupportedVersion: ${browser.minSupportedVersion},`)
           browser.majorVersion && cy.contains(`majorVersion: ${browser.majorVersion},`)
         })
-
-        cy.percySnapshot()
       } else {
         throw new Error('Missing browsers to render')
       }

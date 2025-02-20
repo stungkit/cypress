@@ -1,4 +1,5 @@
 import TerminalPrompt from './TerminalPrompt.vue'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 
 describe('<TerminalPrompt />', () => {
@@ -11,7 +12,6 @@ describe('<TerminalPrompt />', () => {
 
     cy.contains('button', defaultMessages.clipboard.copy)
     .should('be.visible')
-    .percySnapshot()
   })
 
   it('overflows nicely', { viewportWidth: 800, viewportHeight: 120 }, () => {

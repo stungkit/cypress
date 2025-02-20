@@ -11,6 +11,9 @@ import { autoBindDebug, hasTypeScriptInstalled, toPosix } from '../util'
 import _ from 'lodash'
 import { pathToFileURL } from 'url'
 import os from 'os'
+import semver from 'semver'
+import type { OTLPTraceExporterCloud } from '@packages/telemetry'
+import { telemetry, encodeTelemetryContext } from '@packages/telemetry'
 
 const pkg = require('@packages/root')
 const debug = debugLib(`cypress:lifecycle:ProjectConfigIpc`)
@@ -56,6 +59,7 @@ export class ProjectConfigIpc extends EventEmitter {
 
   constructor (
     readonly nodePath: string | undefined | null,
+    readonly nodeVersion: string | undefined | null,
     readonly projectRoot: string,
     readonly configFilePath: string,
     readonly configFile: string | false,
@@ -76,6 +80,14 @@ export class ProjectConfigIpc extends EventEmitter {
       this.emit('disconnect')
     })
 
+    // This forwards telemetry requests from the child process to the server
+    this.on('export:telemetry', (data) => {
+      // Not too worried about tracking successes
+      (telemetry.exporter() as OTLPTraceExporterCloud)?.send(data, () => {}, (err) => {
+        debug('error exporting telemetry data from child process %s', err)
+      })
+    })
+
     return autoBindDebug(this)
   }
 
@@ -87,6 +99,7 @@ export class ProjectConfigIpc extends EventEmitter {
   send(event: 'execute:plugins', evt: string, ids: {eventId: string, invocationId: string}, args: any[]): boolean
   send(event: 'setupTestingType', testingType: TestingType, options: Cypress.PluginConfigOptions): boolean
   send(event: 'loadConfig'): boolean
+  send(event: 'main:process:will:disconnect'): void
   send (event: string, ...args: any[]) {
     if (this._childProcess.killed || !this._childProcess.connected) {
       return false
@@ -96,7 +109,8 @@ export class ProjectConfigIpc extends EventEmitter {
   }
 
   on(evt: 'childProcess:unhandledError', listener: (err: CypressError) => void): this
-
+  on(evt: 'export:telemetry', listener: (data: string) => void): void
+  on(evt: 'main:process:will:disconnect:ack', listener: () => void): void
   on(evt: 'warning', listener: (warningErr: CypressError) => void): this
   on (evt: string, listener: (...args: any[]) => void) {
     return super.on(evt, listener)
@@ -289,7 +303,23 @@ export class ProjectConfigIpc extends EventEmitter {
         // best option that leverages the existing modules we bundle in the binary.
         // @see ts-node esm loader https://typestrong.org/ts-node/docs/usage/#node-flags-and-other-tools
         // @see Node.js Loader API https://nodejs.org/api/esm.html#customizing-esm-specifier-resolution-algorithm
-        const tsNodeEsmLoader = `--experimental-specifier-resolution=node --loader ${tsNodeEsm}`
+        let tsNodeEsmLoader = `--experimental-specifier-resolution=node --loader ${tsNodeEsm}`
+
+        // in nodejs 22.7.0, the --experimental-detect-module option is now enabled by default.
+        // We need to disable it with the --no-experimental-detect-module flag.
+        // @see https://github.com/cypress-io/cypress/issues/30084
+        if (this.nodeVersion && semver.gte(this.nodeVersion, '22.7.0')) {
+          debug(`detected node version ${this.nodeVersion}, adding --no-experimental-detect-module option to child_process NODE_OPTIONS.`)
+          tsNodeEsmLoader = `${tsNodeEsmLoader} --no-experimental-detect-module`
+        }
+
+        // in nodejs 22.12.0, the --experimental-require-module option is now enabled by default.
+        // We need to disable it with the --no-experimental-require-module flag.
+        // @see https://github.com/cypress-io/cypress/issues/30715
+        if (this.nodeVersion && semver.gte(this.nodeVersion, '22.12.0')) {
+          debug(`detected node version ${this.nodeVersion}, adding --no-experimental-require-module option to child_process NODE_OPTIONS.`)
+          tsNodeEsmLoader = `${tsNodeEsmLoader} --no-experimental-require-module`
+        }
 
         if (childOptions.env.NODE_OPTIONS) {
           childOptions.env.NODE_OPTIONS += ` ${tsNodeEsmLoader}`
@@ -318,6 +348,11 @@ export class ProjectConfigIpc extends EventEmitter {
       // TODO: Consider using userland `esbuild` with Node's --loader API to handle ESM.
       debug(`no typescript found, just use regular Node.js`)
     }
+
+    const telemetryCtx = encodeTelemetryContext({ context: telemetry.getActiveContextObject(), version: pkg.version })
+
+    // Pass the active context from the main process to the child process as the --telemetryCtx flag.
+    configProcessArgs.push('--telemetryCtx', telemetryCtx)
 
     if (process.env.CYPRESS_INTERNAL_E2E_TESTING_SELF_PARENT_PROJECT) {
       if (isSandboxNeeded()) {

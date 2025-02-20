@@ -1,6 +1,7 @@
 import { useSnapshotStore } from './snapshot-store'
 import { useAutStore } from '../store'
 import type { EventManager } from './event-manager'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import { useStudioStore } from '../store/studio-store'
 
@@ -21,7 +22,7 @@ export interface AutSnapshot {
   viewportWidth: number
   url: string
   body: {
-    get: () => unknown // TOOD: find out what this is, some sort of JQuery API.
+    get: () => unknown // TODO: find out what this is, some sort of JQuery API.
   }
 }
 
@@ -37,9 +38,6 @@ export class IframeModel {
     private highlightEl: ({ body }: any, opts: any) => void,
     private isAUTSameOrigin: () => boolean,
     private eventManager: EventManager,
-    private studio: {
-      selectorPlaygroundModel: any
-    },
   ) {
     this._reset()
   }

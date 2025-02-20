@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import os from 'os'
+// tslint:disable-next-line no-implicit-dependencies - electron dep needs to be defined
 import { app, nativeImage as image } from 'electron'
 
 import * as cyIcons from '@packages/icons'
@@ -8,12 +9,12 @@ import menu from '../gui/menu'
 import * as Windows from '../gui/windows'
 import { makeGraphQLServer } from '@packages/graphql/src/makeGraphQLServer'
 import { globalPubSub, getCtx, clearCtx } from '@packages/data-context'
+import { telemetry } from '@packages/telemetry'
 
 // eslint-disable-next-line no-duplicate-imports
+// tslint:disable-next-line no-implicit-dependencies - electron dep needs to be defined
 import type { WebContents } from 'electron'
 import type { LaunchArgs, Preferences } from '@packages/types'
-
-import { debugElapsedTime } from '../util/performance_benchmark'
 
 import debugLib from 'debug'
 import { getPathToDesktopIndex } from '@packages/resolve-dist'
@@ -126,6 +127,7 @@ export = {
         show: true,
         frame: true,
         transparent: false,
+        // @ts-ignore
         icon: image.createFromPath(cyIcons.getPathToIcon('icon_64x64.png')),
       },
     }
@@ -143,7 +145,7 @@ export = {
         return globalPubSub.emit('menu:item:clicked', 'log:out')
       },
       getGraphQLPort: () => {
-        return ctx?.gqlServerPort
+        return ctx?.coreData.servers.gqlServerPort
       },
     })
 
@@ -158,6 +160,15 @@ export = {
   },
 
   async run (options: LaunchArgs, _loading: Promise<void>) {
+    // Need to set this for system notifications to appear as "Cypress" on Windows
+    if (app.setAppUserModelId) {
+      app.setAppUserModelId('Cypress')
+    }
+
+    // Note: We do not await the `_loading` promise here since initializing
+    // the data context can significantly delay initial render of the UI
+    // https://github.com/cypress-io/cypress/issues/26388#issuecomment-1492616609
+
     const [, port] = await Promise.all([
       app.whenReady(),
       makeGraphQLServer(),
@@ -170,7 +181,7 @@ export = {
     // the electron process to throw.
     // https://github.com/cypress-io/cypress/issues/22026
 
-    app.once('will-quit', (event: Event) => {
+    app.once('will-quit', (event: Electron.Event) => {
       // We must call synchronously call preventDefault on the will-quit event
       // to halt the current quit lifecycle
       event.preventDefault()
@@ -190,11 +201,15 @@ export = {
 
         debug('DataContext cleared, quitting app')
 
+        telemetry.getSpan('cypress')?.end()
+
+        await telemetry.shutdown()
+
         app.quit()
       })
     })
 
-    debugElapsedTime('open mode ready')
+    telemetry.getSpan('startup:time')?.end()
 
     return this.ready(options, port)
   },

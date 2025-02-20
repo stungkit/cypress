@@ -2,15 +2,16 @@ import cs from 'classnames'
 import _ from 'lodash'
 import { observer } from 'mobx-react'
 import React from 'react'
-import { FileDetails } from '@packages/types'
+import type { FileDetails } from '@packages/types'
 
 import appState, { AppState } from '../lib/app-state'
 import Command from '../commands/command'
 import Collapsible from '../collapsible/collapsible'
-import HookModel, { HookName } from './hook-model'
+import type HookModel from './hook-model'
+import type { HookName } from './hook-model'
 
-import ArrowRightIcon from '-!react-svg-loader!@packages/frontend-shared/src/assets/icons/arrow-right_x16.svg'
-import OpenIcon from '-!react-svg-loader!@packages/frontend-shared/src/assets/icons/technology-code-editor_x16.svg'
+import ArrowRightIcon from '@packages/frontend-shared/src/assets/icons/arrow-right_x16.svg'
+import OpenIcon from '@packages/frontend-shared/src/assets/icons/technology-code-editor_x16.svg'
 import OpenFileInIDE from '../lib/open-file-in-ide'
 
 export interface HookHeaderProps {

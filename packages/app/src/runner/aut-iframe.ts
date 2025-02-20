@@ -14,6 +14,7 @@ import Highlight from './selector-playground/Highlight.ce.vue'
 type $CypressJQuery = any
 
 const sizzleRe = /sizzle/i
+const jQueryRe = /jquery/i
 
 export class AutIframe {
   debouncedToggleSelectorPlayground: DebouncedFunc<(isEnabled: any) => void>
@@ -470,15 +471,21 @@ export class AutIframe {
 
     if (!$el) {
       return logger.logFormatted({
-        Command: selectorPlaygroundStore.command,
-        Yielded: 'Nothing',
+        name: selectorPlaygroundStore.command,
+        type: 'command',
+        props: {
+          Yielded: 'Nothing',
+        },
       })
     }
 
     logger.logFormatted({
-      Command: selectorPlaygroundStore.command,
-      Elements: $el.length,
-      Yielded: Cypress.dom.getElements($el),
+      name: selectorPlaygroundStore.command,
+      type: 'command',
+      props: {
+        Elements: $el.length,
+        Yielded: Cypress.dom.getElements($el),
+      },
     })
   }
 
@@ -534,8 +541,8 @@ export class AutIframe {
         $el = $root.find(selector)
       }
     } catch (err) {
-      // if not a sizzle error, ignore it and let $el be null
-      if (!sizzleRe.test(err.stack)) throw err
+      // if not a sizzle or jQuery error, ignore it and let $el be null
+      if (!(sizzleRe.test(err.stack) || jQueryRe.test(err.stack))) throw err
     }
 
     return $el

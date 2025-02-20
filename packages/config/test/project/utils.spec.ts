@@ -409,47 +409,30 @@ describe('config/src/project/utils', () => {
       this.nodeVersion = process.versions.node
     })
 
-    it('sets bundled Node ver if nodeVersion != system', function () {
+    it('sets cli Node ver', function () {
       const obj = setNodeBinary({
-        nodeVersion: 'bundled',
-      })
-
-      expect(obj).to.deep.eq({
-        nodeVersion: 'bundled',
-        resolvedNodeVersion: this.nodeVersion,
-      })
-    })
-
-    it('sets cli Node ver if nodeVersion = system', function () {
-      const obj = setNodeBinary({
-        nodeVersion: 'system',
       }, '/foo/bar/node', '1.2.3')
 
       expect(obj).to.deep.eq({
-        nodeVersion: 'system',
         resolvedNodeVersion: '1.2.3',
         resolvedNodePath: '/foo/bar/node',
       })
     })
 
-    it('sets bundled Node ver and if nodeVersion = system and userNodePath undefined', function () {
+    it('sets userNodePath undefined', function () {
       const obj = setNodeBinary({
-        nodeVersion: 'system',
       }, undefined, '1.2.3')
 
       expect(obj).to.deep.eq({
-        nodeVersion: 'system',
         resolvedNodeVersion: this.nodeVersion,
       })
     })
 
-    it('sets bundled Node ver and if nodeVersion = system and userNodeVersion undefined', function () {
+    it('sets userNodeVersion undefined', function () {
       const obj = setNodeBinary({
-        nodeVersion: 'system',
       }, '/foo/bar/node')
 
       expect(obj).to.deep.eq({
-        nodeVersion: 'system',
         resolvedNodeVersion: this.nodeVersion,
       })
     })
@@ -779,16 +762,12 @@ describe('config/src/project/utils', () => {
       return this.defaults('animationDistanceThreshold', 5)
     })
 
-    it('video=true', function () {
-      return this.defaults('video', true)
+    it('video=false', function () {
+      return this.defaults('video', false)
     })
 
-    it('videoCompression=32', function () {
-      return this.defaults('videoCompression', 32)
-    })
-
-    it('videoUploadOnPasses=true', function () {
-      return this.defaults('videoUploadOnPasses', true)
+    it('videoCompression=false', function () {
+      return this.defaults('videoCompression', false)
     })
 
     it('trashAssetsBeforeRuns=32', function () {
@@ -856,6 +835,34 @@ describe('config/src/project/utils', () => {
           foo: 'bar',
           baz: 'quux',
         },
+      })
+    })
+
+    it('experimentalCspAllowList=false', function () {
+      return this.defaults('experimentalCspAllowList', false)
+    })
+
+    it('experimentalCspAllowList=true', function () {
+      return this.defaults('experimentalCspAllowList', true, {
+        experimentalCspAllowList: true,
+      })
+    })
+
+    it('experimentalCspAllowList=[]', function () {
+      return this.defaults('experimentalCspAllowList', [], {
+        experimentalCspAllowList: [],
+      })
+    })
+
+    it('experimentalCspAllowList=default-src|script-src', function () {
+      return this.defaults('experimentalCspAllowList', ['default-src', 'script-src'], {
+        experimentalCspAllowList: ['default-src', 'script-src'],
+      })
+    })
+
+    it('experimentalCspAllowList=["default-src","script-src"]', function () {
+      return this.defaults('experimentalCspAllowList', ['default-src', 'script-src'], {
+        experimentalCspAllowList: ['default-src', 'script-src'],
       })
     })
 
@@ -962,6 +969,16 @@ describe('config/src/project/utils', () => {
       expect(warning).to.be.calledWith('EXPERIMENTAL_SAMESITE_REMOVED')
     })
 
+    it('warns if experimentalJustInTimeCompile is passed', async function () {
+      const warning = sinon.spy(errors, 'warning')
+
+      await this.defaults('experimentalJustInTimeCompile', true, {
+        experimentalJustInTimeCompile: true,
+      })
+
+      expect(warning).to.be.calledWith('EXPERIMENTAL_JIT_COMPILE_REMOVED')
+    })
+
     it('warns if experimentalSessionSupport is passed', async function () {
       const warning = sinon.spy(errors, 'warning')
 
@@ -1047,13 +1064,16 @@ describe('config/src/project/utils', () => {
             browsers: { value: [], from: 'default' },
             chromeWebSecurity: { value: true, from: 'default' },
             clientCertificates: { value: [], from: 'default' },
+            defaultBrowser: { value: null, from: 'default' },
             defaultCommandTimeout: { value: 4000, from: 'default' },
             downloadsFolder: { value: 'cypress/downloads', from: 'default' },
             env: {},
+            excludeSpecPattern: { value: '*.hot-update.js', from: 'default' },
             execTimeout: { value: 60000, from: 'default' },
             experimentalModifyObstructiveThirdPartyCode: { value: false, from: 'default' },
-            experimentalFetchPolyfill: { value: false, from: 'default' },
+            experimentalCspAllowList: { value: false, from: 'default' },
             experimentalInteractiveRunEvents: { value: false, from: 'default' },
+            experimentalMemoryManagement: { value: false, from: 'default' },
             experimentalOriginDependencies: { value: false, from: 'default' },
             experimentalRunAllSpecs: { value: false, from: 'default' },
             experimentalSingleTabRunMode: { value: false, from: 'default' },
@@ -1063,12 +1083,12 @@ describe('config/src/project/utils', () => {
             fileServerFolder: { value: '', from: 'default' },
             fixturesFolder: { value: 'cypress/fixtures', from: 'default' },
             hosts: { value: null, from: 'default' },
-            excludeSpecPattern: { value: '*.hot-update.js', from: 'default' },
             includeShadowDom: { value: false, from: 'default' },
+            injectDocumentDomain: { value: false, from: 'default' },
+            justInTimeCompile: { value: true, from: 'default' },
             isInteractive: { value: true, from: 'default' },
             keystrokeDelay: { value: 0, from: 'default' },
             modifyObstructiveCode: { value: true, from: 'default' },
-            nodeVersion: { value: undefined, from: 'default' },
             numTestsKeptInMemory: { value: 50, from: 'default' },
             pageLoadTimeout: { value: 60000, from: 'default' },
             platform: { value: os.platform(), from: 'default' },
@@ -1081,7 +1101,7 @@ describe('config/src/project/utils', () => {
             reporterOptions: { value: null, from: 'default' },
             requestTimeout: { value: 5000, from: 'default' },
             responseTimeout: { value: 30000, from: 'default' },
-            retries: { value: { runMode: 0, openMode: 0 }, from: 'default' },
+            retries: { value: { runMode: 0, openMode: 0, experimentalStrategy: undefined, experimentalOptions: undefined }, from: 'default' },
             screenshotOnRunFailure: { value: true, from: 'default' },
             screenshotsFolder: { value: 'cypress/screenshots', from: 'default' },
             specPattern: { value: 'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}', from: 'default' },
@@ -1092,10 +1112,9 @@ describe('config/src/project/utils', () => {
             testIsolation: { value: true, from: 'default' },
             trashAssetsBeforeRuns: { value: true, from: 'default' },
             userAgent: { value: null, from: 'default' },
-            video: { value: true, from: 'default' },
-            videoCompression: { value: 32, from: 'default' },
+            video: { value: false, from: 'default' },
+            videoCompression: { value: false, from: 'default' },
             videosFolder: { value: 'cypress/videos', from: 'default' },
-            videoUploadOnPasses: { value: true, from: 'default' },
             viewportHeight: { value: 660, from: 'default' },
             viewportWidth: { value: 1000, from: 'default' },
             waitForAnimations: { value: true, from: 'default' },
@@ -1143,18 +1162,9 @@ describe('config/src/project/utils', () => {
             browsers: { value: [], from: 'default' },
             chromeWebSecurity: { value: true, from: 'default' },
             clientCertificates: { value: [], from: 'default' },
+            defaultBrowser: { value: null, from: 'default' },
             defaultCommandTimeout: { value: 4000, from: 'default' },
             downloadsFolder: { value: 'cypress/downloads', from: 'default' },
-            execTimeout: { value: 60000, from: 'default' },
-            experimentalModifyObstructiveThirdPartyCode: { value: false, from: 'default' },
-            experimentalFetchPolyfill: { value: false, from: 'default' },
-            experimentalInteractiveRunEvents: { value: false, from: 'default' },
-            experimentalOriginDependencies: { value: false, from: 'default' },
-            experimentalRunAllSpecs: { value: false, from: 'default' },
-            experimentalSingleTabRunMode: { value: false, from: 'default' },
-            experimentalStudio: { value: false, from: 'default' },
-            experimentalSourceRewriting: { value: false, from: 'default' },
-            experimentalWebKitSupport: { value: false, from: 'default' },
             env: {
               foo: {
                 value: 'foo',
@@ -1177,15 +1187,27 @@ describe('config/src/project/utils', () => {
                 from: 'env',
               },
             },
+            excludeSpecPattern: { value: '*.hot-update.js', from: 'default' },
+            execTimeout: { value: 60000, from: 'default' },
+            experimentalModifyObstructiveThirdPartyCode: { value: false, from: 'default' },
+            experimentalCspAllowList: { value: false, from: 'default' },
+            experimentalInteractiveRunEvents: { value: false, from: 'default' },
+            experimentalMemoryManagement: { value: false, from: 'default' },
+            experimentalOriginDependencies: { value: false, from: 'default' },
+            experimentalRunAllSpecs: { value: false, from: 'default' },
+            experimentalSingleTabRunMode: { value: false, from: 'default' },
+            experimentalStudio: { value: false, from: 'default' },
+            experimentalSourceRewriting: { value: false, from: 'default' },
+            experimentalWebKitSupport: { value: false, from: 'default' },
             fileServerFolder: { value: '', from: 'default' },
             fixturesFolder: { value: 'cypress/fixtures', from: 'default' },
             hosts: { value: null, from: 'default' },
-            excludeSpecPattern: { value: '*.hot-update.js', from: 'default' },
             includeShadowDom: { value: false, from: 'default' },
+            injectDocumentDomain: { value: false, from: 'default' },
+            justInTimeCompile: { value: true, from: 'default' },
             isInteractive: { value: true, from: 'default' },
             keystrokeDelay: { value: 0, from: 'default' },
             modifyObstructiveCode: { value: true, from: 'default' },
-            nodeVersion: { value: undefined, from: 'default' },
             numTestsKeptInMemory: { value: 50, from: 'default' },
             pageLoadTimeout: { value: 60000, from: 'default' },
             platform: { value: os.platform(), from: 'default' },
@@ -1198,7 +1220,7 @@ describe('config/src/project/utils', () => {
             reporterOptions: { value: null, from: 'default' },
             requestTimeout: { value: 5000, from: 'default' },
             responseTimeout: { value: 30000, from: 'default' },
-            retries: { value: { runMode: 0, openMode: 0 }, from: 'default' },
+            retries: { value: { runMode: 0, openMode: 0, experimentalStrategy: undefined, experimentalOptions: undefined }, from: 'default' },
             screenshotOnRunFailure: { value: true, from: 'default' },
             screenshotsFolder: { value: 'cypress/screenshots', from: 'default' },
             slowTestThreshold: { value: 10000, from: 'default' },
@@ -1209,10 +1231,9 @@ describe('config/src/project/utils', () => {
             testIsolation: { value: true, from: 'default' },
             trashAssetsBeforeRuns: { value: true, from: 'default' },
             userAgent: { value: null, from: 'default' },
-            video: { value: true, from: 'default' },
-            videoCompression: { value: 32, from: 'default' },
+            video: { value: false, from: 'default' },
+            videoCompression: { value: false, from: 'default' },
             videosFolder: { value: 'cypress/videos', from: 'default' },
-            videoUploadOnPasses: { value: true, from: 'default' },
             viewportHeight: { value: 660, from: 'default' },
             viewportWidth: { value: 1000, from: 'default' },
             waitForAnimations: { value: true, from: 'default' },

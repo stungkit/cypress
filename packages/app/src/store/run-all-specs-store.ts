@@ -36,7 +36,6 @@ export const useRunAllSpecsStore = defineStore('runAllSpecs', () => {
 
   const separator = getSeparator()
   const router = useRouter()
-  const query = useQuery({ query: RunAllSpecsDataDocument, pause: isRunMode })
   const setRunAllSpecsMutation = useMutation(RunAllSpecsDocument)
 
   async function runSpecs (runAllSpecs: string[]) {
@@ -44,7 +43,7 @@ export const useRunAllSpecsStore = defineStore('runAllSpecs', () => {
 
     // Won't execute unless we are testing since the browser gets killed. In testing,
     // we can stub `launchProject` to verify the functionality is working
-    router.push({ path: '/specs/runner', query: { file: RUN_ALL_SPECS_KEY } })
+    await router.push({ path: '/specs/runner', query: { file: RUN_ALL_SPECS_KEY } })
   }
 
   async function runAllSpecs () {
@@ -76,6 +75,8 @@ export const useRunAllSpecsStore = defineStore('runAllSpecs', () => {
     allSpecsRef.value = allSpecs
     directoryChildrenRef.value = directoryChildren
   }
+
+  const query = useQuery({ query: RunAllSpecsDataDocument, pause: isRunMode || window.__CYPRESS_TESTING_TYPE__ === 'component' })
 
   const isRunAllSpecsAllowed = computed(() => {
     const isE2E = query.data.value?.currentProject?.currentTestingType === 'e2e'

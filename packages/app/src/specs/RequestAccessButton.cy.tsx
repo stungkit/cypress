@@ -1,3 +1,4 @@
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import { RequestAccessButton_RequestAccessDocument } from '../generated/graphql'
 import { RequestAccessButtonFragmentDoc } from '../generated/graphql-test'
@@ -32,8 +33,6 @@ describe('<RequestAccessButton />', () => {
       cy.get(requestAccessButtonSelector)
       .should('be.visible')
       .and('contain.text', messages.requestAccessButton)
-
-      cy.percySnapshot()
     })
 
     it('triggers mutation on button click', () => {
@@ -83,8 +82,6 @@ describe('<RequestAccessButton />', () => {
       cy.get(requestSentButton)
       .should('be.visible')
       .and('contain.text', messages.requestSentButton)
-
-      cy.percySnapshot()
     })
   })
 })

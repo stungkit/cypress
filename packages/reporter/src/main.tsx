@@ -3,11 +3,11 @@ import { action, runInAction } from 'mobx'
 import { observer } from 'mobx-react'
 import cs from 'classnames'
 import React, { Component } from 'react'
-import { render } from 'react-dom'
+import { createRoot } from 'react-dom/client'
 // @ts-ignore
 import EQ from 'css-element-queries/src/ElementQueries'
 
-import { RunnablesErrorModel } from './runnables/runnable-error'
+import type { RunnablesErrorModel } from './runnables/runnable-error'
 import appState, { AppState } from './lib/app-state'
 import events, { Runner, Events } from './lib/events'
 import runnablesStore, { RunnablesStore } from './runnables/runnables-store'
@@ -62,25 +62,26 @@ class Reporter extends Component<SingleReporterProps> {
       statsStore,
       studioEnabled,
       renderReporterHeader = (props: ReporterHeaderProps) => <Header {...props}/>,
+      runnerStore,
     } = this.props
 
     return (
       <div className={cs(className, 'reporter', {
         'studio-active': appState.studioActive,
       })}>
-        {renderReporterHeader({ appState, statsStore })}
+        {renderReporterHeader({ appState, statsStore, runnablesStore })}
         {appState?.isPreferencesMenuOpen ? (
           <TestingPreferences appState={appState} />
         ) : (
-          this.props.runnerStore.spec && <Runnables
+          runnerStore.spec && <Runnables
             appState={appState}
             error={error}
             runnablesStore={runnablesStore}
             scroller={scroller}
-            spec={this.props.runnerStore.spec}
-            statsStore={this.props.statsStore}
+            spec={runnerStore.spec}
+            statsStore={statsStore}
             studioEnabled={studioEnabled}
-            canSaveStudioLogs={this.props.runnerStore.canSaveStudioLogs}
+            canSaveStudioLogs={runnerStore.canSaveStudioLogs}
           />
         )}
       </div>
@@ -113,7 +114,8 @@ class Reporter extends Component<SingleReporterProps> {
     }
 
     action('set:scrolling', () => {
-      appState.setAutoScrolling(autoScrollingEnabled)
+      // set the initial enablement of auto scroll configured inside the user preferences when the app is loaded
+      appState.setAutoScrollingUserPref(autoScrollingEnabled)
     })()
 
     action('set:specs:list', () => {
@@ -152,8 +154,10 @@ declare global {
 if (window.Cypress) {
   window.state = appState
   window.render = (props) => {
-    // @ts-ignore
-    render(<Reporter {...props as Required<BaseReporterProps>} />, document.getElementById('app'))
+    const container: HTMLElement = document.getElementById('app') as HTMLElement
+    const root = createRoot(container)
+
+    root.render(<Reporter {...props as Required<BaseReporterProps>} />)
   }
 }
 

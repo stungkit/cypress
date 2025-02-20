@@ -17,6 +17,40 @@ describe('src/cy/commands/cookies - no stub', () => {
     cy.setCookie('key8', 'value8', { domain: 'www2.foobar.com', log: false })
   }
 
+  it('sets the cookie on the specified domain as hostOnly and validates hostOnly property persists through related commands that fetch cookies', () => {
+    const isWebkit = Cypress.browser.name.includes('webkit')
+
+    cy.visit('http://www.barbaz.com:3500/fixtures/generic.html')
+    cy.setCookie('foo', 'bar', { hostOnly: true })
+
+    cy.getCookie('foo').its('domain').should('eq', 'www.barbaz.com')
+    if (!isWebkit) {
+      cy.getCookie('foo').its('hostOnly').should('eq', true)
+    }
+
+    cy.getCookies().then((cookies) => {
+      expect(cookies).to.have.lengthOf(1)
+
+      const cookie = cookies[0]
+
+      expect(cookie).to.have.property('domain', 'www.barbaz.com')
+      if (!isWebkit) {
+        expect(cookie).to.have.property('hostOnly', true)
+      }
+    })
+
+    cy.getAllCookies().then((cookies) => {
+      expect(cookies).to.have.lengthOf(1)
+
+      const cookie = cookies[0]
+
+      expect(cookie).to.have.property('domain', 'www.barbaz.com')
+      if (!isWebkit) {
+        expect(cookie).to.have.property('hostOnly', true)
+      }
+    })
+  })
+
   context('#getCookies', () => {
     it('returns cookies from only the bare domain matching the AUT by default when AUT is an apex domain', () => {
       cy.visit('http://barbaz.com:3500/fixtures/generic.html')
@@ -580,7 +614,10 @@ describe('src/cy/commands/cookies', () => {
       .withArgs('clear:cookies', [{ domain: 'localhost', name: 'foo' }])
       .resolves([])
 
-      Cypress.emitThen('test:before:run:async', {})
+      Cypress.emitThen('test:before:run:async', {
+        id: 'r1',
+        currentRetry: 1,
+      })
       .then(() => {
         expect(Cypress.automation).to.be.calledWith(
           'get:cookies',
@@ -597,7 +634,10 @@ describe('src/cy/commands/cookies', () => {
     it('does not call clear:cookies when get:cookies returns empty array', () => {
       Cypress.automation.withArgs('get:cookies').resolves([])
 
-      Cypress.emitThen('test:before:run:async', {})
+      Cypress.emitThen('test:before:run:async', {
+        id: 'r1',
+        currentRetry: 1,
+      })
       .then(() => {
         expect(Cypress.automation).not.to.be.calledWith(
           'clear:cookies',
@@ -614,7 +654,10 @@ describe('src/cy/commands/cookies', () => {
 
       const timeout = cy.spy(Promise.prototype, 'timeout')
 
-      Cypress.emitThen('test:before:run:async', {})
+      Cypress.emitThen('test:before:run:async', {
+        id: 'r1',
+        currentRetry: 1,
+      })
       .then(() => {
         expect(timeout).not.to.be.called
       })
@@ -759,9 +802,36 @@ describe('src/cy/commands/cookies', () => {
         ])
       })
 
-      it('can turn off logging', () => {
+      it('can turn off logging when protocol is disabled', { protocolEnabled: false }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'getCookies') {
+            this.hiddenLog = log
+          }
+        })
+
         cy.getCookies({ log: false }).then(function () {
-          expect(this.lastLog).to.be.undefined
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.undefined
+        })
+      })
+
+      it('can send hidden log when protocol is enabled', { protocolEnabled: true }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'getCookies') {
+            this.hiddenLog = log
+          }
+        })
+
+        cy.getCookies({ log: false }).then(function () {
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.ok
+          expect(hiddenLog.get('name'), 'log name').to.eq('getCookies')
+          expect(hiddenLog.get('hidden'), 'log hidden').to.be.true
+          expect(hiddenLog.get('snapshots').length, 'log snapshot length').to.eq(1)
         })
       })
 
@@ -785,11 +855,11 @@ describe('src/cy/commands/cookies', () => {
 
       it('#consoleProps', () => {
         cy.getCookies().then(function (cookies) {
-          expect(cookies).to.deep.eq([{ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false }])
+          expect(cookies).to.deep.eq([{ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false, hostOnly: false }])
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.deep.eq(cookies)
-          expect(c['Num Cookies']).to.eq(1)
+          expect(c.props['Yielded']).to.deep.eq(cookies)
+          expect(c.props['Num Cookies']).to.eq(1)
         })
       })
     })
@@ -900,26 +970,53 @@ describe('src/cy/commands/cookies', () => {
     describe('.log', () => {
       beforeEach(function () {
         cy.on('log:added', (attrs, log) => {
-          if (attrs.name === 'getCookies') {
+          if (attrs.name === 'getAllCookies') {
             this.lastLog = log
           }
         })
 
         Cypress.automation
-        .withArgs('get:cookies', { domain: 'localhost' })
+        .withArgs('get:cookies')
         .resolves([
           { name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false, hostOnly: false },
         ])
       })
 
-      it('can turn off logging', () => {
-        cy.getCookies({ log: false }).then(function () {
-          expect(this.lastLog).to.be.undefined
+      it('can turn off logging when protocol is disabled', { protocolEnabled: false }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'getAllCookies') {
+            this.hiddenLog = log
+          }
+        })
+
+        cy.getAllCookies({ log: false }).then(function () {
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.undefined
+        })
+      })
+
+      it('can send hidden log when protocol is enabled', { protocolEnabled: true }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'getAllCookies') {
+            this.hiddenLog = log
+          }
+        })
+
+        cy.getAllCookies({ log: false }).then(function () {
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.ok
+          expect(hiddenLog.get('name'), 'log name').to.eq('getAllCookies')
+          expect(hiddenLog.get('hidden'), 'log hidden').to.be.true
+          expect(hiddenLog.get('snapshots').length, 'log snapshot length').to.eq(1)
         })
       })
 
       it('ends immediately', () => {
-        cy.getCookies().then(function () {
+        cy.getAllCookies().then(function () {
           const { lastLog } = this
 
           expect(lastLog.get('ended')).to.be.true
@@ -928,7 +1025,7 @@ describe('src/cy/commands/cookies', () => {
       })
 
       it('snapshots immediately', () => {
-        cy.getCookies().then(function () {
+        cy.getAllCookies().then(function () {
           const { lastLog } = this
 
           expect(lastLog.get('snapshots').length).to.eq(1)
@@ -937,12 +1034,12 @@ describe('src/cy/commands/cookies', () => {
       })
 
       it('#consoleProps', () => {
-        cy.getCookies().then(function (cookies) {
-          expect(cookies).to.deep.eq([{ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false }])
+        cy.getAllCookies().then(function (cookies) {
+          expect(cookies).to.deep.eq([{ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false, hostOnly: false }])
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.deep.eq(cookies)
-          expect(c['Num Cookies']).to.eq(1)
+          expect(c.props['Yielded']).to.deep.eq(cookies)
+          expect(c.props['Num Cookies']).to.eq(1)
         })
       })
     })
@@ -955,7 +1052,7 @@ describe('src/cy/commands/cookies', () => {
       })
 
       cy.getCookie('foo').should('deep.eq', {
-        name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false,
+        name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false, hostOnly: true,
       })
       .then(() => {
         expect(Cypress.automation).to.be.calledWith(
@@ -1121,9 +1218,36 @@ describe('src/cy/commands/cookies', () => {
         .resolves(null)
       })
 
-      it('can turn off logging', () => {
+      it('can turn off logging when protocol is disabled', { protocolEnabled: false }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'getCookie') {
+            this.hiddenLog = log
+          }
+        })
+
         cy.getCookie('foo', { log: false }).then(function () {
-          expect(this.log).to.be.undefined
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.undefined
+        })
+      })
+
+      it('can send hidden log when protocol is enabled', { protocolEnabled: true }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'getCookie') {
+            this.hiddenLog = log
+          }
+        })
+
+        cy.getCookie('foo', { log: false }).then(function () {
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.ok
+          expect(hiddenLog.get('name'), 'log name').to.eq('getCookie')
+          expect(hiddenLog.get('hidden'), 'log hidden').to.be.true
+          expect(hiddenLog.get('snapshots').length, 'log snapshot length').to.eq(1)
         })
       })
 
@@ -1164,7 +1288,7 @@ describe('src/cy/commands/cookies', () => {
           expect(cookie).to.deep.eq({ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false })
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.deep.eq(cookie)
+          expect(c.props['Yielded']).to.deep.eq(cookie)
         })
       })
 
@@ -1173,8 +1297,8 @@ describe('src/cy/commands/cookies', () => {
           expect(cookie).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Note']).to.eq('No cookie with the name: \'bar\' was found.')
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Note']).to.eq('No cookie with the name: \'bar\' was found.')
         })
       })
     })
@@ -1196,7 +1320,7 @@ describe('src/cy/commands/cookies', () => {
       .then(() => {
         expect(Cypress.automation).to.be.calledWith(
           'set:cookie',
-          { domain: 'localhost', name: 'foo', value: 'bar', path: '/', secure: false, httpOnly: false, expiry: 12345, sameSite: undefined },
+          { domain: 'localhost', name: 'foo', value: 'bar', path: '/', secure: false, httpOnly: false, hostOnly: false, expiry: 12345, sameSite: undefined },
         )
       })
     })
@@ -1212,7 +1336,7 @@ describe('src/cy/commands/cookies', () => {
       .then(() => {
         expect(Cypress.automation).to.be.calledWith(
           'set:cookie',
-          { domain: 'brian.dev.local', name: 'foo', value: 'bar', path: '/foo', secure: true, httpOnly: true, expiry: 987, sameSite: undefined },
+          { domain: 'brian.dev.local', name: 'foo', value: 'bar', path: '/foo', secure: true, httpOnly: true, hostOnly: false, expiry: 987, sameSite: undefined },
         )
       })
     })
@@ -1461,16 +1585,43 @@ describe('src/cy/commands/cookies', () => {
 
         Cypress.automation
         .withArgs('set:cookie', {
-          domain: 'localhost', name: 'foo', value: 'bar', path: '/', secure: false, httpOnly: false, expiry: 12345, sameSite: undefined,
+          domain: 'localhost', name: 'foo', value: 'bar', path: '/', secure: false, httpOnly: false, hostOnly: false, expiry: 12345, sameSite: undefined,
         })
         .resolves({
           name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false, hostOnly: true,
         })
       })
 
-      it('can turn off logging', () => {
+      it('can turn off logging when protocol is disabled', { protocolEnabled: false }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'setCookie') {
+            this.hiddenLog = log
+          }
+        })
+
         cy.setCookie('foo', 'bar', { log: false }).then(function () {
-          expect(this.log).to.be.undefined
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.undefined
+        })
+      })
+
+      it('can send hidden log when protocol is enabled', { protocolEnabled: true }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'setCookie') {
+            this.hiddenLog = log
+          }
+        })
+
+        cy.setCookie('foo', 'bar', { log: false }).then(function () {
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.ok
+          expect(hiddenLog.get('name'), 'log name').to.eq('setCookie')
+          expect(hiddenLog.get('hidden'), 'log hidden').to.be.true
+          expect(hiddenLog.get('snapshots').length, 'log snapshot length').to.eq(1)
         })
       })
 
@@ -1494,10 +1645,10 @@ describe('src/cy/commands/cookies', () => {
 
       it('#consoleProps', () => {
         cy.setCookie('foo', 'bar').then(function (cookie) {
-          expect(cookie).to.deep.eq({ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false })
+          expect(cookie).to.deep.eq({ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false, hostOnly: true })
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.deep.eq(cookie)
+          expect(c.props['Yielded']).to.deep.eq(cookie)
         })
       })
     })
@@ -1658,9 +1809,36 @@ describe('src/cy/commands/cookies', () => {
         .resolves(null)
       })
 
-      it('can turn off logging', () => {
+      it('can turn off logging when protocol is disabled', { protocolEnabled: false }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'clearCookie') {
+            this.hiddenLog = log
+          }
+        })
+
         cy.clearCookie('foo', { log: false }).then(function () {
-          expect(this.log).to.be.undefined
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.undefined
+        })
+      })
+
+      it('can send hidden log when protocol is enabled', { protocolEnabled: true }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'clearCookie') {
+            this.hiddenLog = log
+          }
+        })
+
+        cy.clearCookie('foo', { log: false }).then(function () {
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.ok
+          expect(hiddenLog.get('name'), 'log name').to.eq('clearCookie')
+          expect(hiddenLog.get('hidden'), 'log hidden').to.be.true
+          expect(hiddenLog.get('snapshots').length, 'log snapshot length').to.eq(1)
         })
       })
 
@@ -1687,8 +1865,8 @@ describe('src/cy/commands/cookies', () => {
           expect(cookie).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Cleared Cookie']).to.deep.eq({ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false })
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Cleared Cookie']).to.deep.eq({ name: 'foo', value: 'bar', domain: 'localhost', path: '/', secure: true, httpOnly: false, hostOnly: false })
         })
       })
 
@@ -1697,9 +1875,9 @@ describe('src/cy/commands/cookies', () => {
           expect(cookie).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Cleared Cookie']).to.be.undefined
-          expect(c['Note']).to.eq('No cookie with the name: \'bar\' was found or removed.')
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Cleared Cookie']).to.be.undefined
+          expect(c.props['Note']).to.eq('No cookie with the name: \'bar\' was found or removed.')
         })
       })
     })
@@ -1914,9 +2092,36 @@ describe('src/cy/commands/cookies', () => {
         ])
       })
 
-      it('can turn off logging', () => {
+      it('can turn off logging when protocol is disabled', { protocolEnabled: false }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'clearCookies') {
+            this.hiddenLog = log
+          }
+        })
+
         cy.clearCookies({ log: false }).then(function () {
-          expect(this.log).to.be.undefined
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.undefined
+        })
+      })
+
+      it('can send hidden log when protocol is enabled', { protocolEnabled: true }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'clearCookies') {
+            this.hiddenLog = log
+          }
+        })
+
+        cy.clearCookies({ log: false }).then(function () {
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.ok
+          expect(hiddenLog.get('name'), 'log name').to.eq('clearCookies')
+          expect(hiddenLog.get('hidden'), 'log hidden').to.be.true
+          expect(hiddenLog.get('snapshots').length, 'log snapshot length').to.eq(1)
         })
       })
 
@@ -1943,9 +2148,9 @@ describe('src/cy/commands/cookies', () => {
           expect(cookies).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Cleared Cookies']).to.deep.eq([{ name: 'foo' }])
-          expect(c['Num Cookies']).to.eq(1)
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Cleared Cookies']).to.deep.eq([{ name: 'foo' }])
+          expect(c.props['Num Cookies']).to.eq(1)
         })
       })
     })
@@ -1968,9 +2173,9 @@ describe('src/cy/commands/cookies', () => {
           expect(cookies).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Cleared Cookies']).to.be.undefined
-          expect(c['Note']).to.eq('No cookies were found or removed.')
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Cleared Cookies']).to.be.undefined
+          expect(c.props['Note']).to.eq('No cookies were found or removed.')
         })
       })
     })
@@ -1995,9 +2200,9 @@ describe('src/cy/commands/cookies', () => {
           expect(cookies).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Cleared Cookies']).to.be.undefined
-          expect(c['Note']).to.eq('No cookies were found or removed.')
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Cleared Cookies']).to.be.undefined
+          expect(c.props['Note']).to.eq('No cookies were found or removed.')
         })
       })
     })
@@ -2198,9 +2403,36 @@ describe('src/cy/commands/cookies', () => {
         ])
       })
 
-      it('can turn off logging', () => {
+      it('can turn off logging when protocol is disabled', { protocolEnabled: false }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'clearAllCookies') {
+            this.hiddenLog = log
+          }
+        })
+
         cy.clearAllCookies({ log: false }).then(function () {
-          expect(this.log).to.be.undefined
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.undefined
+        })
+      })
+
+      it('can send hidden log when protocol is enabled', { protocolEnabled: true }, function () {
+        cy.on('_log:added', (attrs, log) => {
+          if (attrs.name === 'clearAllCookies') {
+            this.hiddenLog = log
+          }
+        })
+
+        cy.clearAllCookies({ log: false }).then(function () {
+          const { lastLog, hiddenLog } = this
+
+          expect(lastLog).to.be.undefined
+          expect(hiddenLog).to.be.ok
+          expect(hiddenLog.get('name'), 'log name').to.eq('clearAllCookies')
+          expect(hiddenLog.get('hidden'), 'log hidden').to.be.true
+          expect(hiddenLog.get('snapshots').length, 'log snapshot length').to.eq(1)
         })
       })
 
@@ -2227,9 +2459,9 @@ describe('src/cy/commands/cookies', () => {
           expect(cookies).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Cleared Cookies']).to.deep.eq([{ name: 'foo' }])
-          expect(c['Num Cookies']).to.eq(1)
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Cleared Cookies']).to.deep.eq([{ name: 'foo' }])
+          expect(c.props['Num Cookies']).to.eq(1)
         })
       })
     })
@@ -2252,9 +2484,9 @@ describe('src/cy/commands/cookies', () => {
           expect(cookies).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Cleared Cookies']).to.be.undefined
-          expect(c['Note']).to.eq('No cookies were found or removed.')
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Cleared Cookies']).to.be.undefined
+          expect(c.props['Note']).to.eq('No cookies were found or removed.')
         })
       })
     })
@@ -2277,9 +2509,9 @@ describe('src/cy/commands/cookies', () => {
           expect(cookies).to.be.null
           const c = this.lastLog.invoke('consoleProps')
 
-          expect(c['Yielded']).to.eq('null')
-          expect(c['Cleared Cookies']).to.be.undefined
-          expect(c['Note']).to.eq('No cookies were found or removed.')
+          expect(c.props['Yielded']).to.eq('null')
+          expect(c.props['Cleared Cookies']).to.be.undefined
+          expect(c.props['Note']).to.eq('No cookies were found or removed.')
         })
       })
     })

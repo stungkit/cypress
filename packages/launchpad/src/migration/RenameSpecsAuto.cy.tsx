@@ -1,3 +1,4 @@
+// tslint:disable-next-line: no-implicit-dependencies - need to handle this
 import { defaultMessages } from '@cy/i18n'
 import { RenameSpecsAutoFragmentDoc } from '../generated/graphql-test'
 import RenameSpecsAuto from './RenameSpecsAuto.vue'
@@ -6,7 +7,7 @@ describe('<RenameSpecsAuto/>', { viewportWidth: 1119 }, () => {
   it('renders the title', () => {
     cy.mountFragment(RenameSpecsAutoFragmentDoc, {
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <RenameSpecsAuto gql={gql} />
         </div>)
       },
@@ -18,7 +19,7 @@ describe('<RenameSpecsAuto/>', { viewportWidth: 1119 }, () => {
   it('renders the change link', () => {
     cy.mountFragment(RenameSpecsAutoFragmentDoc, {
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <RenameSpecsAuto gql={gql} />
         </div>)
       },
@@ -30,7 +31,7 @@ describe('<RenameSpecsAuto/>', { viewportWidth: 1119 }, () => {
   it('changes the skip status when proceeding to change', () => {
     cy.mountFragment(RenameSpecsAutoFragmentDoc, {
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <RenameSpecsAuto gql={gql} />
         </div>)
       },
@@ -49,7 +50,7 @@ describe('<RenameSpecsAuto/>', { viewportWidth: 1119 }, () => {
         res.shouldMigratePreExtension = false
       },
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <RenameSpecsAuto gql={gql} />
         </div>)
       },

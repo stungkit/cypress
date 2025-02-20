@@ -170,7 +170,7 @@ describe('src/cy/commands/assertions', () => {
     /*
      * There was a bug (initially discovered as part of https://github.com/cypress-io/cypress/issues/23699 but not
      * directly related) in our copy of chai where, when an element with a trailing space was asserted on,
-     * the log message would oscilate rapidly between two states. This happened because we were re-using a global
+     * the log message would oscillate rapidly between two states. This happened because we were re-using a global
      * regular expression - which tracks internal state.
      *
      * https://stackoverflow.com/questions/15276873/is-javascript-test-saving-state-in-the-regex
@@ -652,17 +652,20 @@ describe('src/cy/commands/assertions', () => {
         cy.get('button:first', { timeout: 500 }).should('have.class', 'does-not-have-class')
       })
 
-      it('has a pending state while retrying for commands with onFail', (done) => {
+      it('has a pending state while retrying for commands with onFail', function (done) {
         cy.on('command:retry', () => {
-          const [readFileLog, shouldLog] = cy.state('current').get('logs')
+          // Wait for the readFile response to come back from the server
+          if (this.logs.length < 2) {
+            return
+          }
+
+          const [readFileLog, shouldLog] = this.logs
 
           expect(readFileLog.get('state')).to.eq('pending')
           expect(shouldLog.get('state')).to.eq('pending')
 
           done()
         })
-
-        cy.on('fail', () => {})
 
         cy.readFile('does-not-exist.json', { timeout: 500 }).should('exist')
       })
@@ -936,16 +939,30 @@ describe('src/cy/commands/assertions', () => {
       expect(2n).to.equal(2n)
     })
 
+    it('handles non-HTMLElement(s) (e.g. Element)', () => {
+      const xml = '<?xml version="1.0" encoding="UTF-8"?><foo><bar>Bar</bar></foo>'
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(xml, 'application/xml')
+      const foo = doc.getElementsByTagName('foo')[0]
+
+      expect(foo).not.to.be.undefined
+      expect(foo).to.be.instanceOf(Element)
+      expect(foo).not.to.be.instanceOf(HTMLElement)
+    })
+
     it('#consoleProps for regular objects', (done) => {
       cy.on('log:added', (attrs, log) => {
         if (attrs.name === 'assert') {
           cy.removeAllListeners('log:added')
 
           expect(log.invoke('consoleProps')).to.deep.eq({
-            Command: 'assert',
-            expected: 1,
-            actual: 1,
-            Message: 'expected 1 to equal 1',
+            name: 'assert',
+            type: 'command',
+            props: {
+              expected: 1,
+              actual: 1,
+              Message: 'expected 1 to equal 1',
+            },
           })
 
           done()
@@ -963,9 +980,12 @@ describe('src/cy/commands/assertions', () => {
           cy.removeAllListeners('log:added')
 
           expect(log.invoke('consoleProps')).to.deep.eq({
-            Command: 'assert',
-            subject: log.get('subject'),
-            Message: 'expected <body> to have property length',
+            name: 'assert',
+            type: 'command',
+            props: {
+              subject: log.get('subject'),
+              Message: 'expected <body> to have property length',
+            },
           })
 
           done()
@@ -986,11 +1006,14 @@ describe('src/cy/commands/assertions', () => {
 
           try {
             expect(log.invoke('consoleProps')).to.deep.contain({
-              Command: 'assert',
-              expected: false,
-              actual: true,
-              Message: 'expected true to be false',
-              Error: log.get('error').stack,
+              name: 'assert',
+              type: 'command',
+              error: log.get('error').stack,
+              props: {
+                expected: false,
+                actual: true,
+                Message: 'expected true to be false',
+              },
             })
           } catch (e) {
             err = e
@@ -2637,18 +2660,6 @@ describe('src/cy/commands/assertions', () => {
         })
 
         expect({}).to.have.focus
-      })
-
-      it('calls into custom focus pseudos', () => {
-        cy.$$('button:first').focus()
-        const stub = cy.spy($.expr.pseudos, 'focus').as('focus')
-
-        expect(cy.$$('button:first')).to.have.focus
-
-        cy.get('button:first').should('have.focus')
-        .then(() => {
-          expect(stub).to.be.calledTwice
-        })
       })
     })
 

@@ -32,13 +32,20 @@ export default function (Commands, Cypress, cy) {
       }
     })
 
-    Cypress.on('test:before:run:async', () => {
+    Cypress.on('test:before:after:run:async', (test, Cypress, { nextTestHasTestIsolationOn }: {nextTestHasTestIsolationOn?: boolean} = {}) => {
+      if (nextTestHasTestIsolationOn || nextTestHasTestIsolationOn === undefined) {
+        return navigateAboutBlank({ inBetweenTestsAndNextTestHasTestIsolationOn: true })
+      }
+
+      return
+    })
+
+    Cypress.on('test:before:run:async', async () => {
       if (!Cypress.config('testIsolation')) {
         return
       }
 
-      return navigateAboutBlank()
-      .then(() => sessions.clearCurrentSessionData())
+      return sessions.clearCurrentSessionData()
       .then(() => Cypress.backend('reset:rendered:html:origins'))
     })
   })
@@ -245,9 +252,11 @@ export default function (Commands, Cypress, cy) {
                 err = new Error(err)
               }
 
+              const userInvocationStack = $errUtils.getUserInvocationStack(err, Cypress.state)
+
               err = $errUtils.enhanceStack({
                 err,
-                userInvocationStack: $errUtils.getUserInvocationStack(err, Cypress.state),
+                userInvocationStack,
                 projectRoot: Cypress.config('projectRoot'),
               })
 

@@ -23,7 +23,6 @@
         "displayName": "Chrome",
         "version": "97.0.4692.71",
         "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        "minSupportedVersion": 64,
         "majorVersion": 97
       },
       {
@@ -33,7 +32,6 @@
         "displayName": "Firefox",
         "version": "95.0.2",
         "path": "/Applications/Firefox.app/Contents/MacOS/firefox",
-        "minSupportedVersion": 86,
         "majorVersion": 95
       },
       {
@@ -85,7 +83,7 @@
   {
     "value": false,
     "from": "default",
-    "field": "experimentalFetchPolyfill"
+    "field": "experimentalCspAllowList"
   },
   {
     "value": true,
@@ -228,12 +226,12 @@
     "field": "userAgent"
   },
   {
-    "value": true,
+    "value": false,
     "from": "default",
     "field": "video"
   },
   {
-    "value": 32,
+    "value": false,
     "from": "default",
     "field": "videoCompression"
   },
@@ -241,11 +239,6 @@
     "value": "cypress/videos",
     "from": "default",
     "field": "videosFolder"
-  },
-  {
-    "value": true,
-    "from": "default",
-    "field": "videoUploadOnPasses"
   },
   {
     "value": 850,
@@ -284,7 +277,7 @@
               "vue3-file-selector",
               "just-my-luck",
               "combine-properties",
-              "faker",
+              "@faker-js/faker",
               "cypress/support/customPercyCommand"
             ]
           }

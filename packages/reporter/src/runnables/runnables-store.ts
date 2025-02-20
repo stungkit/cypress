@@ -1,13 +1,17 @@
+import type { TestFilter } from '@packages/types'
 import _ from 'lodash'
-import { action, observable } from 'mobx'
-import AgentModel, { AgentProps } from '../agents/agent-model'
-import CommandModel, { CommandProps } from '../commands/command-model'
-import { HookProps } from '../hooks/hook-model'
+import { action, observable, makeObservable } from 'mobx'
+import type AgentModel from '../agents/agent-model'
+import type { AgentProps } from '../agents/agent-model'
+import type CommandModel from '../commands/command-model'
+import type { CommandProps } from '../commands/command-model'
+import type { HookProps } from '../hooks/hook-model'
 import appState, { AppState } from '../lib/app-state'
 import scroller, { Scroller } from '../lib/scroller'
-import RouteModel, { RouteProps } from '../routes/route-model'
+import type RouteModel from '../routes/route-model'
+import type { RouteProps } from '../routes/route-model'
 import TestModel, { TestProps, UpdatableTestProps, UpdateTestCallback } from '../test/test-model'
-import RunnableModel from './runnable-model'
+import type RunnableModel from './runnable-model'
 import SuiteModel, { SuiteProps } from './suite-model'
 
 const defaults = {
@@ -34,6 +38,9 @@ export interface RootRunnable {
   hooks?: Array<HookProps>
   tests?: Array<TestProps>
   suites?: Array<SuiteProps>
+  testFilter?: TestFilter
+  totalTests?: number
+  totalUnfilteredTests?: number
 }
 
 type RunnableType = 'test' | 'suite'
@@ -50,6 +57,9 @@ export class RunnablesStore {
    * content: RunnableArray
    */
   @observable runnablesHistory: Record<string, RunnableArray> = {}
+  @observable totalTests: number = 0
+  @observable totalUnfilteredTests: number = 0
+  @observable testFilter: TestFilter
 
   runningSpec: string | null = null
 
@@ -67,6 +77,7 @@ export class RunnablesStore {
   showingSnapshot = defaults.showingSnapshot
 
   constructor ({ appState, scroller }: Props) {
+    makeObservable(this)
     this.appState = appState
     this.scroller = scroller
   }
@@ -79,6 +90,10 @@ export class RunnablesStore {
 
     this.hasTests = numTests > 0
     this.hasSingleTest = numTests === 1
+    this.totalTests = numTests
+
+    this.totalUnfilteredTests = rootRunnable.totalUnfilteredTests || 0
+    this.testFilter = rootRunnable.testFilter
 
     this._finishedInitialRendering()
   }
@@ -150,9 +165,9 @@ export class RunnablesStore {
     })
   }
 
-  runnableFinished (props: TestProps) {
+  runnableFinished (props: TestProps, isInteractive: boolean) {
     this._withTest(props.id, (test) => {
-      test.finish(props)
+      test.finish(props, isInteractive)
     })
   }
 
@@ -195,6 +210,7 @@ export class RunnablesStore {
     this.runnablesHistory = {}
     this._tests = {}
     this._runnablesQueue = []
+    this.totalTests = 0
   }
 
   @action

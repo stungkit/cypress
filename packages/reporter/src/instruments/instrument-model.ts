@@ -1,5 +1,5 @@
-import { observable } from 'mobx'
-import { Instrument, TestState } from '@packages/types'
+import { observable, makeObservable } from 'mobx'
+import type { Instrument, TestState } from '@packages/types'
 
 export interface AliasObject {
   name: string
@@ -16,9 +16,8 @@ export interface InstrumentProps {
   displayName?: string
   name?: string
   message?: string
-  // agent / route / session - instrument panel log type
   // parent / child / system - command log type
-  type?: 'agent' | 'parent' | 'child' | 'system' | 'route' | 'session'
+  type?: 'parent' | 'child' | 'system'
   testCurrentRetry?: number
   state: TestState
   referencesAlias?: Alias
@@ -39,6 +38,7 @@ export default class Log {
   testId: string
 
   constructor (props: InstrumentProps) {
+    makeObservable(this)
     this.id = props.id
     this.alias = props.alias
     this.aliasType = props.aliasType

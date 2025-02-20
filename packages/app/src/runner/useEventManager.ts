@@ -1,4 +1,5 @@
 import { watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { addCrossOriginIframe, getAutIframeModel, getEventManager, UnifiedRunnerAPI } from '.'
 import { useAutStore, useSpecStore } from '../store'
 import { useStudioStore } from '../store/studio-store'
@@ -10,24 +11,25 @@ export function useEventManager () {
   const autStore = useAutStore()
   const specStore = useSpecStore()
   const studioStore = useStudioStore()
+  const router = useRouter()
 
-  function runSpec (isRerun: boolean = false) {
+  async function runSpec (isRerun: boolean = false) {
     if (!specStore.activeSpec) {
       throw Error(`Cannot run spec when specStore.active spec is null or undefined!`)
     }
 
     autStore.setScriptError(null)
-    UnifiedRunnerAPI.executeSpec(specStore.activeSpec, isRerun)
+    await UnifiedRunnerAPI.executeSpec(specStore.activeSpec, isRerun)
   }
 
   function initializeRunnerLifecycleEvents () {
     // these events do not use GraphQL
-    eventManager.on('restart', () => {
+    eventManager.on('restart', async () => {
       // If we get the event to restart but have already navigated away from the runner, don't execute the spec
       if (specStore.activeSpec) {
         const isRerun = true
 
-        runSpec(isRerun)
+        await runSpec(isRerun)
       }
     })
 
@@ -47,8 +49,8 @@ export function useEventManager () {
       getAutIframeModel().reattachStudio()
     })
 
-    eventManager.on('visit:blank', ({ testIsolation }) => {
-      getAutIframeModel().visitBlankPage(testIsolation)
+    eventManager.on('visit:blank', async ({ testIsolation }) => {
+      await getAutIframeModel().visitBlankPage(testIsolation)
     })
 
     eventManager.on('run:end', () => {
@@ -58,12 +60,21 @@ export function useEventManager () {
     })
 
     eventManager.on('expect:origin', addCrossOriginIframe)
+
+    eventManager.on('testFilter:cloudDebug:dismiss', async () => {
+      const currentRoute = router.currentRoute.value
+
+      const { mode, ...query } = currentRoute.query
+
+      // Delete runId from query which will remove the test filter and trigger a rerun
+      await router.replace({ ...currentRoute, query })
+    })
   }
 
   const startSpecWatcher = () => {
-    return watch(() => specStore.activeSpec, () => {
+    return watch(() => specStore.activeSpec, async () => {
       if (specStore.activeSpec) {
-        runSpec()
+        await runSpec()
       }
     }, { immediate: true, flush: 'post' })
   }

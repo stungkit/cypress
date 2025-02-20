@@ -1,7 +1,11 @@
 import Card from './Card.vue'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these module imports
 import IconE2E from '~icons/cy/testing-type-e2e_x64.svg'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these module imports
 import IconE2ESolid from '~icons/cy/testing-type-e2e-solid_x64.svg'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these module imports
 import IconComponent from '~icons/cy/testing-type-component_x64.svg'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these module imports
 import IconComponentSolid from '~icons/cy/testing-type-component-solid_x64.svg'
 
 describe('Card', { viewportHeight: 400 }, () => {
@@ -14,10 +18,10 @@ describe('Card', { viewportHeight: 400 }, () => {
     cy.mount(() => {
       const clickSpy = cy.spy().as('clickSpy')
 
-      return (<div class="flex m-32px justify-center">
+      return (<div class="flex m-[32px] justify-center">
         <Card
           title={e2eTitle}
-          class="m-16px px-40px pt-36px pb-32px w-336px"
+          class="m-[16px] px-[40px] pt-[36px] pb-[32px] w-[336px]"
           description={e2eDescription}
           icon={IconE2E}
           hoverIcon={IconE2ESolid}
@@ -26,7 +30,7 @@ describe('Card', { viewportHeight: 400 }, () => {
           variant='jade'/>
         <Card
           title={ctTitle}
-          class="m-16px px-40px pt-36px pb-32px w-336px"
+          class="m-[16px] px-[40px] pt-[36px] pb-[32px] w-[336px]"
           description={ctDescription}
           iconSize={64}
           icon={IconComponent}
@@ -53,13 +57,16 @@ describe('Card', { viewportHeight: 400 }, () => {
     // health check that expected icons and hover icons are present in the dom
     cy.get('svg').should('have.length', 4)
 
-    cy.percySnapshot('both cards unfocused')
+    // cy.percySnapshot('both cards unfocused') TODO: Find out why focus state is not captured in Percy.
 
+    cy.get('@e2eTitle').should('not.be.focused')
     cy.get('@e2eTitle').focus()
-    cy.percySnapshot('card-1 focused')
+    cy.get('@e2eTitle').should('be.focused')
+    // cy.percySnapshot('card-1 focused') TODO: Find out why focus state is not captured in Percy.
 
     cy.get('@ctTitle').focus()
-    cy.percySnapshot('card-2 focused')
+    cy.get('@ctTitle').should('be.focused')
+    // cy.percySnapshot('card-2 focused') TODO: Find out why focus state is not captured in Percy.
 
     // clicks work on card or button
     cy.get('[data-cy="card"]').eq(0).click()
@@ -74,10 +81,10 @@ describe('Card', { viewportHeight: 400 }, () => {
 
     cy.mount(() => {
       return (
-        <div class="flex m-32px justify-center">
+        <div class="flex m-[32px] justify-center">
           <Card
             title="Disabled card"
-            class="m-16px px-40px pt-36px pb-32px w-336px"
+            class="m-[16px] px-[40px] pt-[36px] pb-[32px] w-[336px]"
             description="Can't do this now!"
             icon={IconE2E}
             hoverIcon={IconE2ESolid}

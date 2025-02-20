@@ -1,11 +1,22 @@
 /* eslint-disable no-redeclare */
 import Bluebird from 'bluebird'
 import _ from 'lodash'
-import type { BrowserLaunchOpts, FoundBrowser } from '@packages/types'
+import type { FoundBrowser } from '@packages/types'
 import * as errors from '../errors'
 import * as plugins from '../plugins'
-import { getError } from '@packages/errors'
 import * as launcher from '@packages/launcher'
+import type { Automation } from '../automation'
+import type { Browser } from './types'
+import type { CriClient } from './cri-client'
+
+declare global {
+  interface Window {
+    navigation?: {
+      addEventListener: (event: string, listener: (event: any) => void) => void
+    }
+    cypressUtilityBinding?: (url: string) => void
+  }
+}
 
 const path = require('path')
 const debug = require('debug')('cypress:server:browsers:utils')
@@ -14,6 +25,7 @@ const { fs } = require('../util/fs')
 const extension = require('@packages/extension')
 const appData = require('../util/app_data')
 const profileCleaner = require('../util/profile_cleaner')
+const { telemetry } = require('@packages/telemetry')
 
 const pathToBrowsers = appData.path('browsers')
 const legacyProfilesWildcard = path.join(pathToBrowsers, '*')
@@ -124,7 +136,18 @@ const pathToExtension = extension.getPathToExtension()
 
 async function executeBeforeBrowserLaunch (browser, launchOptions: typeof defaultLaunchOptions, options) {
   if (plugins.has('before:browser:launch')) {
+    const span = telemetry.startSpan({ name: 'lifecycle:before:browser:launch' })
+
+    span?.setAttribute({
+      name: browser.name,
+      channel: browser.channel,
+      version: browser.version,
+      isHeadless: browser.isHeadless,
+    })
+
     const pluginConfigResult = await plugins.execute('before:browser:launch', browser, launchOptions)
+
+    span?.end()
 
     if (pluginConfigResult) {
       extendLaunchOptionsFromPlugins(launchOptions, pluginConfigResult, options)
@@ -134,36 +157,38 @@ async function executeBeforeBrowserLaunch (browser, launchOptions: typeof defaul
   return launchOptions
 }
 
-function extendLaunchOptionsFromPlugins (launchOptions, pluginConfigResult, options: BrowserLaunchOpts) {
-  // if we returned an array from the plugin
-  // then we know the user is using the deprecated
-  // interface and we need to warn them
-  // TODO: remove this logic in >= v5.0.0
-  if (pluginConfigResult[0]) {
-    // eslint-disable-next-line no-console
-    (options.onWarning || console.warn)(getError(
-      'DEPRECATED_BEFORE_BROWSER_LAUNCH_ARGS',
-    ))
+interface AfterBrowserLaunchDetails {
+  webSocketDebuggerUrl: string | never
+}
 
-    _.extend(pluginConfigResult, {
-      args: _.filter(pluginConfigResult, (_val, key) => {
-        return _.isNumber(key)
-      }),
-      extensions: [],
+async function executeAfterBrowserLaunch (browser: Browser, options: AfterBrowserLaunchDetails) {
+  if (plugins.has('after:browser:launch')) {
+    const span = telemetry.startSpan({ name: 'lifecycle:after:browser:launch' })
+
+    span?.setAttribute({
+      name: browser.name,
+      channel: browser.channel,
+      version: browser.version,
+      isHeadless: browser.isHeadless,
     })
-  } else {
-    // either warn about the array or potentially error on invalid props, but not both
 
-    // strip out all the known launch option properties from the resulting object
-    const unexpectedProperties: string[] = _
-    .chain(pluginConfigResult)
-    .omit(KNOWN_LAUNCH_OPTION_PROPERTIES)
-    .keys()
-    .value()
+    await plugins.execute('after:browser:launch', browser, options)
 
-    if (unexpectedProperties.length) {
-      errors.throwErr('UNEXPECTED_BEFORE_BROWSER_LAUNCH_PROPERTIES', unexpectedProperties, KNOWN_LAUNCH_OPTION_PROPERTIES)
-    }
+    span?.end()
+  }
+}
+
+function extendLaunchOptionsFromPlugins (launchOptions, pluginConfigResult, options) {
+  // strip out all the known launch option properties from the resulting object
+  const unexpectedProperties: string[] = _
+  .chain(pluginConfigResult)
+  .omit(KNOWN_LAUNCH_OPTION_PROPERTIES)
+  .keys()
+  .value()
+
+  if (unexpectedProperties.length) {
+    // error on invalid props
+    errors.throwErr('UNEXPECTED_BEFORE_BROWSER_LAUNCH_PROPERTIES', unexpectedProperties, KNOWN_LAUNCH_OPTION_PROPERTIES)
   }
 
   _.forEach(launchOptions, (val, key) => {
@@ -350,9 +375,116 @@ const throwBrowserNotFound = function (browserName, browsers: FoundBrowser[] = [
   return errors.throwErr('BROWSER_NOT_FOUND_BY_NAME', browserName, formatBrowsersToOptions(browsers))
 }
 
+const initializeCDP = async (criClient: CriClient, automation: Automation) => {
+  await criClient.send('Runtime.enable')
+  await criClient.send('Runtime.addBinding', {
+    name: 'cypressUtilityBinding',
+  })
+
+  await criClient.on('Runtime.bindingCalled', async (data) => {
+    if (data.name === 'cypressUtilityBinding') {
+      const event = JSON.parse(data.payload)
+
+      switch (event.type) {
+        case 'service-worker-registration':
+          // Chromium browsers and webkit do not give us guaranteed pre requests for service worker registrations but they still go through the proxy.
+          // We need to notify the proxy when they are registered so that we can know which requests are controlled by service workers.
+          await automation.onServiceWorkerClientSideRegistrationUpdated?.(event)
+          break
+        case 'download':
+          // Chromium browsers and webkit do not give us pre requests for download links but they still go through the proxy.
+          // We need to notify the proxy when they are clicked so that we can resolve the pending request waiting to be
+          // correlated in the proxy.
+          await automation.onDownloadLinkClicked?.(event.destination)
+          break
+        default:
+          throw new Error(`Unknown cypressUtilityBinding event type: ${event.type}`)
+      }
+    }
+  })
+
+  await criClient.send('Page.addScriptToEvaluateOnNewDocument', {
+    source: `
+    const binding = window['cypressUtilityBinding']
+    delete window['cypressUtilityBinding']
+    ;(${listenForDownload.toString()})(binding)
+    ;(${overrideServiceWorkerRegistration.toString()})(binding)
+    `,
+  })
+}
+
+const overrideServiceWorkerRegistration = (binding) => {
+  // The service worker container won't be available in different situations (like in the placeholder iframes we create
+  // in open mode). So only override the register function if it exists.
+  if (window.ServiceWorkerContainer) {
+    const oldRegister = window.ServiceWorkerContainer.prototype.register
+
+    window.ServiceWorkerContainer.prototype.register = function (scriptURL, options) {
+      const anchor = document.createElement('a')
+
+      let resolvedHref: URL
+
+      if (typeof scriptURL === 'string') {
+        anchor.setAttribute('href', scriptURL)
+        resolvedHref = new URL(anchor.href)
+      } else {
+        resolvedHref = scriptURL
+      }
+
+      anchor.remove()
+      const resolvedUrl = `${resolvedHref.origin}${resolvedHref.pathname}`
+
+      const serviceWorkerRegistrationEvent = {
+        type: 'service-worker-registration',
+        scriptURL: resolvedUrl,
+        initiatorOrigin: window.location.origin,
+      }
+
+      binding(JSON.stringify(serviceWorkerRegistrationEvent))
+
+      return oldRegister.apply(this, [scriptURL, options])
+    }
+  }
+}
+
+// The most efficient way to do this is to listen for the navigate event. However, this is only available in chromium browsers (after 102).
+// For older versions and for webkit, we need to listen for click events on anchor tags with the download attribute.
+const listenForDownload = (binding) => {
+  if (binding) {
+    const createDownloadEvent = (destination) => {
+      return JSON.stringify({
+        type: 'download',
+        destination,
+      })
+    }
+
+    if (window.navigation) {
+      window.navigation.addEventListener('navigate', (event) => {
+        if (typeof event.downloadRequest === 'string') {
+          binding(createDownloadEvent(event.destination.url))
+        }
+      })
+    } else {
+      document.addEventListener('click', (event) => {
+        if (event.target instanceof HTMLAnchorElement && typeof event.target.download === 'string') {
+          binding(createDownloadEvent(event.target.href))
+        }
+      })
+
+      document.addEventListener('keydown', (event) => {
+        if (event.target instanceof HTMLAnchorElement && event.key === 'Enter' && typeof event.target.download === 'string') {
+          binding(createDownloadEvent(event.target.href))
+        }
+      })
+    }
+  }
+}
+
 export = {
 
   extendLaunchOptionsFromPlugins,
+
+  executeAfterBrowserLaunch,
 
   executeBeforeBrowserLaunch,
 
@@ -383,6 +515,10 @@ export = {
   formatBrowsersToOptions,
 
   throwBrowserNotFound,
+
+  initializeCDP,
+
+  listenForDownload,
 
   writeExtension (browser, isTextTerminal, proxyUrl, socketIoRoute) {
     debug('writing extension')

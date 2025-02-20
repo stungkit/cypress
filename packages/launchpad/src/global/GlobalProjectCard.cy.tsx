@@ -1,5 +1,6 @@
 import GlobalProjectCard from './GlobalProjectCard.vue'
 import { GlobalProjectCardFragmentDoc } from '../generated/graphql-test'
+// tslint:disable-next-line: no-implicit-dependencies - need to handle this
 import { defaultMessages } from '@cy/i18n'
 
 const defaultPath = '/usr/local/dev/projects/some-test-title'
@@ -15,7 +16,7 @@ describe('<GlobalProjectCard />', () => {
 
     cy.mountFragment(GlobalProjectCardFragmentDoc, {
       render: (gqlValue) => (
-        <div class="p-12 overflow-auto resize-x max-w-600px">
+        <div class="p-12 overflow-auto resize-x max-w-[600px]">
           <GlobalProjectCard gql={gqlValue}
             onOpenInIDE={openInIDESpy}
             onOpenInFinder={openInFinderSpy}

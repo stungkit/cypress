@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Bluebird from 'bluebird'
+// tslint:disable-next-line no-implicit-dependencies - electron dep needs to be defined
 import { BrowserWindow } from 'electron'
 import Debug from 'debug'
 import * as savedState from '../saved_state'
@@ -17,7 +18,7 @@ export type WindowOptions = Electron.BrowserWindowConstructorOptions & {
    */
   trackState?: TrackStateMap
   onFocus?: () => void
-  onNewWindow?: (e, url, frameName, disposition, options) => Promise<void>
+  onNewWindow?: ({ disposition, features, frameName, postBody, referrer, url }) => Promise<void>
   onCrashed?: () => void
 }
 
@@ -185,12 +186,20 @@ export function create (projectRoot, _options: WindowOptions, newBrowserWindow =
     })
   }
 
-  win.webContents.on('crashed', function (...args) {
+  win.webContents.on('render-process-gone', function (...args) {
     return options.onCrashed.apply(win, args)
   })
 
-  win.webContents.on('new-window', function (...args) {
-    return options.onNewWindow.apply(win, args)
+  // As of Electron v22, the 'new-window' event has been removed for 'setWindowOpenHandler'.
+  // @see https://github.com/electron/electron/blob/v21.0.0/docs/api/web-contents.md#event-new-window-deprecated
+  // @see https://github.com/electron/electron/pull/34526
+  win.webContents.setWindowOpenHandler(function (...args) {
+    // opens the child window from the root window so Cypress can decorate it with needed events and configuration
+    options.onNewWindow.apply(win, args)
+
+    // Because the opening of the window is handled by the root window above, deny opening the window.
+    // @see https://github.com/electron/electron/blob/v21.0.0/docs/api/web-contents.md#contentssetwindowopenhandlerhandler
+    return { action: 'deny' }
   })
 
   if (options.trackState) {

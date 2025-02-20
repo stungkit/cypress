@@ -1,3 +1,4 @@
+// tslint:disable-next-line: no-implicit-dependencies - requires cypress
 import { defineConfig } from 'cypress'
 
 export default defineConfig({
@@ -11,9 +12,9 @@ export default defineConfig({
   reporter: '../../node_modules/cypress-multi-reporters/index.js',
   reporterOptions: {
     configFile: '../../mocha-reporter-config.json',
-    videoCompression: false, // turn off video compression for CI
   },
   component: {
+    experimentalSingleTabRunMode: true,
     devServer: {
       bundler: 'vite',
       framework: 'vue',

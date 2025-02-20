@@ -1,8 +1,10 @@
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import { h } from 'vue'
 
 // Subject Under Test
 import Select from './Select.vue'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these module imports
 import IconHeart from '~icons/mdi/heart'
 
 const selectText = defaultMessages.components.select
@@ -34,10 +36,12 @@ const mountSelect = (props: any = {}) => {
   // The width and padding need to be here so that
   // a click on the body dismisses the options
   return cy.mount(() => (
-    <div class="p-12 w-300px">
+    <div class="p-12 w-[300px]">
+      <label id="mock-label">Mock Label</label>
       <Select
         options={defaultOptions}
         modelValue={value}
+        labelId="mock-label"
         {...props}
         v-slots={props.vSlots}
       />
@@ -165,6 +169,8 @@ describe('<Select />', () => {
             'onUpdate:modelValue': (value: any) => this.model = value,
             options: defaultOptions,
             placeholder: 'A placeholder',
+            label: 'Pick a color',
+            'label-id': 'label',
           })
         },
       }).then(() => {
@@ -194,7 +200,8 @@ describe('<Select />', () => {
         'item-suffix': () => <IconHeart data-testid="item-suffix"></IconHeart>,
         'selected': () => 'Selected',
         'input-prefix': () => <IconHeart data-testid="input-prefix"></IconHeart>,
-        'input-suffix': () => <IconHeart data-testid="input-suffix"></IconHeart>,
+        'input-suffix': () => <IconHeart data-testid="input-suffix">suffix</IconHeart>,
+        'footer': () => <div>This is the footer</div>,
       }
 
       mountSelect({ vSlots })
@@ -218,6 +225,8 @@ describe('<Select />', () => {
 
       // Choose an option
       .then(selectFirstOption)
+
+      cy.contains('This is the footer').should('be.visible')
 
       // The options list should be closed
       cy.get(optionsSelector).should('not.exist')

@@ -9,7 +9,7 @@
   />
   <AdjustRunnerStyleDuringScreenshot
     id="main-pane"
-    class="flex border-gray-900"
+    class="flex"
   >
     <AutomationElement />
     <AutomationDisconnected
@@ -35,11 +35,11 @@
       @panel-width-updated="handlePanelWidthUpdated"
     >
       <template #panel1="{isDragging}">
-        <HideDuringScreenshotOrRunMode
+        <HideDuringScreenshot
           v-if="props.gql.currentProject"
           v-show="runnerUiStore.isSpecsListOpen"
           id="inline-spec-list"
-          class="h-full bg-gray-1000 border-gray-900 border-r-1 force-dark"
+          class="h-full bg-gray-1000 border-gray-900 border-r force-dark"
           :class="{'pointer-events-none': isDragging}"
         >
           <InlineSpecList
@@ -52,7 +52,7 @@
             @close="runnerUiStore.setShowChooseExternalEditorModal(false)"
             @selected="openFile"
           />
-        </HideDuringScreenshotOrRunMode>
+        </HideDuringScreenshot>
       </template>
       <template #panel2>
         <HideDuringScreenshot
@@ -67,17 +67,17 @@
         </HideDuringScreenshot>
       </template>
       <template #panel3>
-        <HideDuringScreenshotOrRunMode class="bg-white">
+        <HideDuringScreenshot class="bg-white">
           <SpecRunnerHeaderOpenMode
             v-if="props.gql.currentProject"
             :gql="props.gql.currentProject"
             :event-manager="eventManager"
             :get-aut-iframe="getAutIframeModel"
           />
-        </HideDuringScreenshotOrRunMode>
+        </HideDuringScreenshot>
 
         <RemoveClassesDuringScreenshotting
-          class="h-0 p-16px"
+          class="h-0 p-[16px]"
         >
           <ScriptError
             v-if="autStore.scriptError"
@@ -101,7 +101,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted, watchEffect } from 'vue'
 import { REPORTER_ID, RUNNER_ID } from './utils'
 import InlineSpecList from '../specs/InlineSpecList.vue'
 import { getAutIframeModel, getEventManager } from '.'
@@ -121,7 +121,6 @@ import type { SpecRunnerFragment } from '../generated/graphql'
 import { usePreferences } from '../composables/usePreferences'
 import ScriptError from './ScriptError.vue'
 import ResizablePanels from './ResizablePanels.vue'
-import HideDuringScreenshotOrRunMode from './screenshot/HideDuringScreenshotOrRunMode.vue'
 import AutomationElement from './automation/AutomationElement.vue'
 import { useResizablePanels, useRunnerStyle } from './useRunnerStyle'
 import { useEventManager } from './useEventManager'
@@ -155,6 +154,14 @@ fragment SpecRunner_Preferences on Query {
 `
 
 gql`
+fragment SpecRunner_Studio on Query {
+  studio {
+    status
+  }
+}
+`
+
+gql`
 fragment SpecRunner_Config on CurrentProject {
   id
   config
@@ -172,6 +179,7 @@ fragment SpecRunner on Query {
   }
   ...ChooseExternalEditor
   ...SpecRunner_Preferences
+  ...SpecRunner_Studio
 }
 `
 
@@ -216,6 +224,10 @@ const isSpecsListOpenPreferences = computed(() => {
   return props.gql.localSettings.preferences.isSpecsListOpen ?? false
 })
 
+const studioStatus = computed(() => {
+  return props.gql.studio?.status
+})
+
 const hideCommandLog = runnerUiStore.hideCommandLog
 
 // watch active spec, and re-run if it changes!
@@ -234,7 +246,7 @@ if (!hideCommandLog) {
   preferences.update('reporterWidth', reporterWidthPreferences.value)
   preferences.update('specListWidth', specsListWidthPreferences.value)
   // 👆 we must update these preferences before calling useRunnerStyle, to make sure that values from GQL
-// will be available during the initial calculation that useRunnerStyle does
+  // will be available during the initial calculation that useRunnerStyle does
 }
 
 const {
@@ -287,6 +299,19 @@ function openFile () {
     },
   })
 }
+
+watchEffect(() => {
+  if (studioStatus.value === 'INITIALIZED') {
+    import('app-studio').then(({ mountTestGenerationPanel }) => {
+      // eslint-disable-next-line no-console
+      console.log('Studio loaded', mountTestGenerationPanel)
+    }).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error('Error loading Studio', err)
+    })
+  }
+})
+
 onMounted(() => {
   const eventManager = getEventManager()
 

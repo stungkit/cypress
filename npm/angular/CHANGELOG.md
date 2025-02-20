@@ -1,3 +1,48 @@
+# [@cypress/angular-v3.0.0](https://github.com/cypress-io/cypress/compare/@cypress/angular-v2.1.0...@cypress/angular-v3.0.0) (2025-01-08)
+
+
+### breaking
+
+* release version 3.0.0 of @cypress/angular. ([8dc8c12](https://github.com/cypress-io/cypress/commit/8dc8c12d855ce0370d65e74afc3889413b4cfbb4))
+
+
+### Features
+
+* support angular 19 and update tests [run ci] ([#30675](https://github.com/cypress-io/cypress/issues/30675)) ([dcdefb4](https://github.com/cypress-io/cypress/commit/dcdefb4069486d587a87de802064017ec9b67b55))
+
+
+### BREAKING CHANGES
+
+* Cypress 14 drops support for Angular 13-16. Angular 17.2 and up is supported.
+
+# [@cypress/angular-v2.1.0](https://github.com/cypress-io/cypress/compare/@cypress/angular-v2.0.4...@cypress/angular-v2.1.0) (2024-07-02)
+
+
+### Features
+
+* add Angular Signals CT Harness for Angular 17.2 and up for users to be able to use Angular Signals within their component tests ([#29621](https://github.com/cypress-io/cypress/issues/29621)) ([f2554f1](https://github.com/cypress-io/cypress/commit/f2554f12d6d1f438db898fbbc10a100ebff733ce))
+
+# [@cypress/angular-v2.0.4](https://github.com/cypress-io/cypress/compare/@cypress/angular-v2.0.3...@cypress/angular-v2.0.4) (2024-06-07)
+
+
+### Bug Fixes
+
+* update cypress to Typescript 5 ([#29568](https://github.com/cypress-io/cypress/issues/29568)) ([f3b6766](https://github.com/cypress-io/cypress/commit/f3b67666a5db0438594339c379cf27e1fd1e4abc))
+
+# [@cypress/angular-v2.0.3](https://github.com/cypress-io/cypress/compare/@cypress/angular-v2.0.2...@cypress/angular-v2.0.3) (2023-03-14)
+
+
+### Bug Fixes
+
+* **angular:** mount cy-root in original location ([#25965](https://github.com/cypress-io/cypress/issues/25965)) ([e674f43](https://github.com/cypress-io/cypress/commit/e674f43040ad95d2745601aa0f36eab4703c837e))
+
+# [@cypress/angular-v2.0.2](https://github.com/cypress-io/cypress/compare/@cypress/angular-v2.0.1...@cypress/angular-v2.0.2) (2023-02-17)
+
+
+### Bug Fixes
+
+* mount component in [data-cy-root] ([#25807](https://github.com/cypress-io/cypress/issues/25807)) ([104eef5](https://github.com/cypress-io/cypress/commit/104eef5dfb4b619a748e7ddd59534eadb1044ae7))
+
 # [@cypress/angular-v2.0.1](https://github.com/cypress-io/cypress/compare/@cypress/angular-v2.0.0...@cypress/angular-v2.0.1) (2022-11-08)
 
 

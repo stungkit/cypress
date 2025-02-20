@@ -27,7 +27,7 @@ const onServer = function (app) {
     const buf = fs.readFileSync(Fixtures.path('server/gzip-bad.html.gz'))
 
     return res.set({
-      'content-type': 'application/javascript',
+      'content-type': 'text/javascript',
       'content-encoding': 'gzip',
     })
     .send(buf)
@@ -49,9 +49,6 @@ describe('e2e js error handling', () => {
     spec: 'js_error_handling_failing.cy.js',
     snapshot: true,
     expectedExitCode: 5,
-    config: {
-      video: false,
-    },
     onStdout (stdout) {
       // firefox has a stack line for the cross-origin error that other browsers don't
       return stdout

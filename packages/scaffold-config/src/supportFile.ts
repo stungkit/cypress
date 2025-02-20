@@ -1,6 +1,5 @@
 import type { CodeLanguage } from '@packages/types'
 import dedent from 'dedent'
-import type { WizardMountModule } from './frameworks'
 
 export function supportFileE2E (language: CodeLanguage['type']) {
   return dedent`
@@ -21,13 +20,10 @@ export function supportFileE2E (language: CodeLanguage['type']) {
 
     // Import commands.js using ES2015 syntax:
     import './commands'
-
-    // Alternatively you can use CommonJS syntax:
-    // require('./commands')
   `
 }
 
-export function supportFileComponent (language: CodeLanguage['type'], mountModule: WizardMountModule) {
+export function supportFileComponent (language: CodeLanguage['type'], mountModule: string) {
   const supportFileTemplate = dedent`
     // ***********************************************************
     // This example support/component.${language} is processed and
@@ -46,9 +42,6 @@ export function supportFileComponent (language: CodeLanguage['type'], mountModul
 
     // Import commands.js using ES2015 syntax:
     import './commands'
-
-    // Alternatively you can use CommonJS syntax:
-    // require('./commands')
   `
 
   const exampleUse = dedent`

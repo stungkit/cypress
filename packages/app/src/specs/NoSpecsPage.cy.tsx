@@ -1,4 +1,5 @@
 import NoSpecsPage from './NoSpecsPage.vue'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import { NoSpecsPageFragmentDoc } from '../generated/graphql-test'
 
@@ -40,8 +41,6 @@ describe('<NoSpecsPage />', { viewportHeight: 655, viewportWidth: 1032 }, () => 
     it('renders the correct text for component testing', () => {
       cy.get(pageTitleSelector).should('contain.text', messages.page.defaultPatternNoSpecs.title)
       .get(pageDescriptionSelector).should('contain.text', messages.page.defaultPatternNoSpecs.component.description)
-
-      cy.percySnapshot()
     })
   })
 
@@ -72,9 +71,8 @@ describe('<NoSpecsPage />', { viewportHeight: 655, viewportWidth: 1032 }, () => 
 
       cy.contains(text.importFromScaffold.header).should('be.visible')
       cy.contains(text.importFromScaffold.description).should('be.visible')
-      cy.contains(text.importEmptySpec.header).should('be.visible')
-      cy.contains(text.importEmptySpec.description).should('be.visible')
-      cy.percySnapshot()
+      cy.contains(text.importTemplateSpec.header).should('be.visible')
+      cy.contains(text.importTemplateSpec.description).should('be.visible')
     })
   })
 

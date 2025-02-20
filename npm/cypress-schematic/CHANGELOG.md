@@ -1,3 +1,41 @@
+# [@cypress/schematic-v3.0.0](https://github.com/cypress-io/cypress/compare/@cypress/schematic-v2.5.2...@cypress/schematic-v3.0.0) (2025-01-08)
+
+
+### breaking
+
+* release version 3.0.0 of @cypress/schematic. ([e51b975](https://github.com/cypress-io/cypress/commit/e51b975b749cb3a34a9a77ecac176290885d7330))
+
+
+### Features
+
+* support angular 19 and update tests [run ci] ([#30675](https://github.com/cypress-io/cypress/issues/30675)) ([dcdefb4](https://github.com/cypress-io/cypress/commit/dcdefb4069486d587a87de802064017ec9b67b55))
+
+
+### BREAKING CHANGES
+
+* Cypress 14 drops support for Angular 13-16. Angular 17.2 and up is supported.
+
+# [@cypress/schematic-v2.5.2](https://github.com/cypress-io/cypress/compare/@cypress/schematic-v2.5.1...@cypress/schematic-v2.5.2) (2024-06-07)
+
+
+### Bug Fixes
+
+* update cypress to Typescript 5 ([#29568](https://github.com/cypress-io/cypress/issues/29568)) ([f3b6766](https://github.com/cypress-io/cypress/commit/f3b67666a5db0438594339c379cf27e1fd1e4abc))
+
+# [@cypress/schematic-v2.5.1](https://github.com/cypress-io/cypress/compare/@cypress/schematic-v2.5.0...@cypress/schematic-v2.5.1) (2023-09-07)
+
+# [@cypress/schematic-v2.5.0](https://github.com/cypress-io/cypress/compare/@cypress/schematic-v2.4.0...@cypress/schematic-v2.5.0) (2023-01-25)
+
+
+### Bug Fixes
+
+* **cypress-schematic:** do not disable e2e support file ([#25400](https://github.com/cypress-io/cypress/issues/25400)) ([d52f3dc](https://github.com/cypress-io/cypress/commit/d52f3dc8cbf0daf276d1ec5db95e065cf703b070))
+
+
+### Features
+
+* Add Angular CT Schematic ([#24374](https://github.com/cypress-io/cypress/issues/24374)) ([af6be6f](https://github.com/cypress-io/cypress/commit/af6be6f27d8547bbfbed60cd3a7524861d842548)), closes [#23645](https://github.com/cypress-io/cypress/issues/23645) [#23673](https://github.com/cypress-io/cypress/issues/23673) [#23696](https://github.com/cypress-io/cypress/issues/23696)
+
 # [@cypress/schematic-v2.4.0](https://github.com/cypress-io/cypress/compare/@cypress/schematic-v2.3.0...@cypress/schematic-v2.4.0) (2022-12-02)
 
 

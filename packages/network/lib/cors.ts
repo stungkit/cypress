@@ -4,16 +4,14 @@ import debugModule from 'debug'
 import _parseDomain from '@cypress/parse-domain'
 import type { ParsedHost, ParsedHostWithProtocolAndHost } from './types'
 
-type Policy = 'same-origin' | 'same-super-domain-origin' | 'schemeful-same-site'
+export type Policy = 'same-origin' | 'same-super-domain-origin' | 'schemeful-same-site'
 
 const debug = debugModule('cypress:network:cors')
 
 // match IP addresses or anything following the last .
 const customTldsRe = /(^[\d\.]+$|\.[^\.]+$)/
 
-const strictSameOriginDomains = Object.freeze(['google.com'])
-
-export function getSuperDomain (url) {
+export function getSuperDomain (url: string) {
   const parsed = parseUrlIntoHostProtocolDomainTldPort(url)
 
   return _.compact([parsed.domain, parsed.tld]).join('.')
@@ -26,7 +24,7 @@ export function parseDomain (domain: string, options = {}) {
   }))
 }
 
-export function parseUrlIntoHostProtocolDomainTldPort (str) {
+export function parseUrlIntoHostProtocolDomainTldPort (str: string) {
   let { hostname, port, protocol } = uri.parse(str)
 
   if (!hostname) {
@@ -78,8 +76,12 @@ export function getDomainNameFromParsedHost (parsedHost: ParsedHost) {
   return _.compact([parsedHost.domain, parsedHost.tld]).join('.')
 }
 
+export function domainPropsToHostname ({ domain, subdomain, tld }: Record<string, any>) {
+  return _.compact([subdomain, domain, tld]).join('.')
+}
+
 /**
- * same-origin: Whether or not a a urls scheme, port, and host match. @see https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy
+ * same-origin: Whether or not a urls scheme, port, and host match. @see https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy
  * same-super-domain-origin: Whether or not a url's scheme, domain, top-level domain, and port match
  * same-site: Whether or not a url's scheme, domain, and top-level domain match. @see https://developer.mozilla.org/en-US/docs/Glossary/Site
  * @param {Policy} policy - the policy being used
@@ -87,10 +89,10 @@ export function getDomainNameFromParsedHost (parsedHost: ParsedHost) {
  * @param {ParsedHostWithProtocolAndHost} topProps - the props being compared against the url
  * @returns {boolean} whether or not the props and url fit the policy
  */
-function urlMatchesPolicyProps ({ policy, frameUrl, topProps }: {
+export function urlMatchesPolicyProps ({ policy, frameUrl, topProps }: {
   policy: Policy
   frameUrl: string
-  topProps: ParsedHostWithProtocolAndHost
+  topProps: ParsedHostWithProtocolAndHost | null
 }): boolean {
   if (!policy || !frameUrl || !topProps) {
     return false
@@ -126,11 +128,12 @@ function urlMatchesPolicyProps ({ policy, frameUrl, topProps }: {
   }
 }
 
-function urlMatchesPolicy ({ policy, frameUrl, topUrl }: {
+export function urlMatchesPolicy ({ policy, frameUrl, topUrl }: {
   policy: Policy
   frameUrl: string
   topUrl: string
 }): boolean {
+  debug('url matches policy?', { policy, frameUrl, topUrl })
   if (!policy || !frameUrl || !topUrl) {
     return false
   }
@@ -161,28 +164,13 @@ export const urlSameSiteMatch = (frameUrl: string, topUrl: string): boolean => {
 /**
  * Returns the policy that will be used for the specified url.
  * @param url - the url to check the policy against.
+ * @param opts - an options object containing the skipDomainInjectionForDomains config. Default is undefined.
  * @returns a Policy string.
  */
-export const policyForDomain = (url: string): Policy => {
-  const obj = parseUrlIntoHostProtocolDomainTldPort(url)
-
-  return strictSameOriginDomains.includes(`${obj.domain}.${obj.tld}`) ? 'same-origin' : 'same-super-domain-origin'
-}
-
-/**
- * Checks the supplied url's against the determined policy.
- * The policy is same-super-domain-origin unless the domain is in the list of strict same origin domains,
- * in which case the policy is 'same-origin'
- * @param frameUrl - The url you are testing the policy for.
- * @param topUrl - The url you are testing the policy in context of.
- * @returns boolean, true if matching, false if not.
- */
-export const urlMatchesPolicyBasedOnDomain = (frameUrl: string, topUrl: string): boolean => {
-  return urlMatchesPolicy({
-    policy: policyForDomain(frameUrl),
-    frameUrl,
-    topUrl,
-  })
+export const policyFromConfig = (config: { injectDocumentDomain: boolean }): Policy => {
+  return config.injectDocumentDomain ?
+    'same-super-domain-origin' :
+    'same-origin'
 }
 
 /**
@@ -191,11 +179,13 @@ export const urlMatchesPolicyBasedOnDomain = (frameUrl: string, topUrl: string):
  * in which case the policy is 'same-origin'
  * @param frameUrl - The url you are testing the policy for.
  * @param topProps - The props of the url you are testing the policy in context of.
+ * @param opts - an options object containing the skipDomainInjectionForDomains config. Default is undefined.
  * @returns boolean, true if matching, false if not.
  */
-export const urlMatchesPolicyBasedOnDomainProps = (frameUrl: string, topProps: ParsedHostWithProtocolAndHost): boolean => {
-  const obj = parseUrlIntoHostProtocolDomainTldPort(frameUrl)
-  const policy = strictSameOriginDomains.includes(`${obj.domain}.${obj.tld}`) ? 'same-origin' : 'same-super-domain-origin'
+export const urlMatchesPolicyBasedOnDomainProps = (frameUrl: string, topProps: ParsedHostWithProtocolAndHost, opts?: {
+  injectDocumentDomain: boolean
+}): boolean => {
+  const policy = opts?.injectDocumentDomain ? 'same-super-domain-origin' : 'same-origin'
 
   return urlMatchesPolicyProps({
     policy,
@@ -215,15 +205,6 @@ export function urlMatchesOriginProtectionSpace (urlStr, origin) {
   const normalizedOrigin = uri.addDefaultPort(origin).format()
 
   return _.startsWith(normalizedUrl, normalizedOrigin)
-}
-
-export function getOrigin (url: string) {
-  // @ts-ignore
-  const { origin } = new URL(url)
-
-  // origin is comprised of:
-  // protocol + subdomain + superdomain + port
-  return origin
 }
 
 /**

@@ -9,15 +9,15 @@
     @update:model-value="emits('close')"
   >
     <div
-      class="w-full p-24px sm:min-w-640px"
+      class="w-full p-[24px] sm:min-w-[640px]"
     >
       <SpecPatterns
         :gql="props.gql"
-        class="border-px rounded border-gray-100"
+        class="border-gray-100 rounded border-px"
       />
     </div>
     <StandardModalFooter
-      class="flex gap-16px items-center"
+      class="flex gap-[16px] items-center"
     >
       <OpenConfigFileInIDE
         v-slot="{onClick}"
@@ -52,8 +52,8 @@ import { useI18n } from '@cy/i18n'
 import type { SpecPatternModalFragment } from '../generated/graphql'
 import { gql } from '@urql/core'
 import StandardModalFooter from '@cy/components/StandardModalFooter.vue'
-import Button from '../../../frontend-shared/src/components/Button.vue'
-import OpenConfigFileInIDE from '../../../frontend-shared/src/gql-components/OpenConfigFileInIDE.vue'
+import Button from '@packages/frontend-shared/src/components/Button.vue'
+import OpenConfigFileInIDE from '@packages/frontend-shared/src/gql-components/OpenConfigFileInIDE.vue'
 
 gql`
 fragment SpecPatternModal on CurrentProject {

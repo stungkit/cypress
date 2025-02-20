@@ -15,6 +15,7 @@ export async function determineDeferred (
     nodeModulesOnly: boolean
     forceNoRewrite: Set<string>
     nodeEnv: string
+    cypressInternalEnv: string
     integrityCheckSource: string | undefined
   },
 ) {
@@ -88,6 +89,7 @@ export async function determineDeferred (
     previousNoRewrite: currentNoRewrite,
     forceNoRewrite: opts.forceNoRewrite,
     nodeEnv: opts.nodeEnv,
+    cypressInternalEnv: opts.cypressInternalEnv,
     supportTypeScript: opts.nodeModulesOnly,
     integrityCheckSource: opts.integrityCheckSource,
   })
@@ -95,19 +97,23 @@ export async function determineDeferred (
   const {
     deferred: updatedDeferred,
     norewrite: updatedNorewrite,
-    healthy: updatedHealty,
+    healthy: updatedHealthy,
   } = await doctor.heal()
   const deferredHashFile = path.relative(projectBaseDir, hashFilePath)
 
   const updatedMeta = {
     norewrite: opts.nodeModulesOnly ? [...updatedNorewrite, ...projectNoRewrite] : updatedNorewrite,
     deferred: opts.nodeModulesOnly ? [...updatedDeferred, ...projectDeferred] : updatedDeferred,
-    healthy: opts.nodeModulesOnly ? [...updatedHealty, ...projectHealthy] : updatedHealty,
+    healthy: opts.nodeModulesOnly ? [...updatedHealthy, ...projectHealthy] : updatedHealthy,
     deferredHashFile,
     deferredHash: currentHash,
   }
 
-  if (!opts.nodeModulesOnly && process.env.V8_UPDATE_METAFILE && ['1', 'true'].includes(process.env.V8_UPDATE_METAFILE)) {
+  const updateMetafile = process.env.V8_UPDATE_METAFILE && ['1', 'true'].includes(process.env.V8_UPDATE_METAFILE)
+  const generateFromScratch = process.env.V8_SNAPSHOT_FROM_SCRATCH && ['1', 'true'].includes(process.env.V8_SNAPSHOT_FROM_SCRATCH)
+
+  // Only update the metafile if we are generating the full snapshot and we have either explicitly requested to update it or generating from scratch
+  if (!opts.nodeModulesOnly && (updateMetafile || generateFromScratch)) {
     await fs.promises.writeFile(
       jsonPath,
       JSON.stringify(updatedMeta, null, 2),
@@ -118,7 +124,7 @@ export async function determineDeferred (
   return {
     norewrite: updatedNorewrite,
     deferred: updatedDeferred,
-    healthy: updatedHealty,
+    healthy: updatedHealthy,
   }
 }
 

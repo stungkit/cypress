@@ -1,6 +1,6 @@
 import path from 'path'
 
-type SnapshotConfig = {
+export type SnapshotConfig = {
   appEntryFile: string
   cypressAppSnapshotDir: string
   nodeModulesOnly: boolean
@@ -11,6 +11,8 @@ type SnapshotConfig = {
   metaFile: string
   minify: boolean
   integrityCheckSource: string | undefined
+  useExistingSnapshotScript?: boolean
+  updateSnapshotScriptContents?: (contents: string) => string
 }
 
 const platformString = process.platform
@@ -18,7 +20,6 @@ const platformString = process.platform
 const snapshotCacheBaseDir = path.resolve(__dirname, '..', '..', 'cache')
 
 const projectBaseDir = path.join(__dirname, '..', '..', '..', '..')
-const appEntryFile = require.resolve('@packages/server/v8-snapshot-entry')
 
 const cypressAppSnapshotDir = (cypressAppPath?: string) => {
   const electronPackageDir = path.join(projectBaseDir, 'packages', 'electron')
@@ -74,10 +75,16 @@ export function createConfig ({
   env = 'prod',
   cypressAppPath,
   integrityCheckSource,
+  supportCypressInCypress,
+  useExistingSnapshotScript,
+  updateSnapshotScriptContents,
 }: {
   env?: 'dev' | 'prod'
   cypressAppPath?: string
   integrityCheckSource: string | undefined
+  supportCypressInCypress?: boolean
+  useExistingSnapshotScript?: boolean
+  updateSnapshotScriptContents?: (contents: string) => string
 }): SnapshotConfig {
   /**
    * If true only node_module dependencies are included in the snapshot. Otherwise app files are included as well
@@ -86,6 +93,7 @@ export function createConfig ({
    */
   const nodeModulesOnly = env === 'dev'
   const minify = !process.env.V8_SNAPSHOT_DISABLE_MINIFY && env === 'prod'
+  const appEntryFile = supportCypressInCypress ? require.resolve('./v8-snapshot-entry-cy-in-cy') : require.resolve('./v8-snapshot-entry')
 
   const snapshotCacheDir = getSnapshotCacheDir()
 
@@ -103,6 +111,8 @@ export function createConfig ({
     snapshotEntryFile,
     minify,
     integrityCheckSource,
+    useExistingSnapshotScript,
+    updateSnapshotScriptContents,
   }
 }
 

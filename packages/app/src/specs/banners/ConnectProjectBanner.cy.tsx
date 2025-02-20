@@ -1,15 +1,16 @@
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import ConnectProjectBanner from './ConnectProjectBanner.vue'
 import { TrackedBanner_RecordBannerSeenDocument } from '../../generated/graphql'
 
 describe('<ConnectProjectBanner />', () => {
-  const cohortOption = { cohort: 'A', value: defaultMessages.specPage.banners.connectProject.contentA }
+  const cohortOption = { cohort: '', value: defaultMessages.specPage.banners.connectProject.content }
 
   it('should render expected content', () => {
     cy.mount({ render: () => <ConnectProjectBanner hasBannerBeenShown={true} cohortOption={cohortOption}/> })
 
     cy.contains(defaultMessages.specPage.banners.connectProject.title).should('be.visible')
-    cy.contains(defaultMessages.specPage.banners.connectProject.contentA).should('be.visible')
+    cy.contains(defaultMessages.specPage.banners.connectProject.content).should('be.visible')
     cy.contains(defaultMessages.specPage.banners.connectProject.buttonLabel).should('be.visible')
 
     cy.percySnapshot()
@@ -33,7 +34,7 @@ describe('<ConnectProjectBanner />', () => {
         campaign: 'Create project',
         medium: 'Specs Create Project Banner',
         messageId: Cypress.sinon.match.string,
-        cohort: 'A',
+        cohort: null,
       })
     })
 

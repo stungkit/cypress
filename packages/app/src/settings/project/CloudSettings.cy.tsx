@@ -1,3 +1,4 @@
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import { CloudSettingsFragmentDoc } from '../../generated/graphql-test'
 import CloudSettings from './CloudSettings.vue'
@@ -8,7 +9,7 @@ describe('<CloudSettings />', () => {
 
       render: (gqlVal) => {
         return (
-          <div class="py-4 px-8 children:py-24px">
+          <div class="py-4 px-8 children:py-[24px]">
             <CloudSettings gql={gqlVal}/>
           </div>
         )
@@ -31,7 +32,7 @@ describe('<CloudSettings />', () => {
       },
       render: (gqlVal) => {
         return (
-          <div class="py-4 px-8 children:py-24px">
+          <div class="py-4 px-8 children:py-[24px]">
             <CloudSettings gql={gqlVal}/>
           </div>
         )
@@ -41,8 +42,6 @@ describe('<CloudSettings />', () => {
     cy.findByText(defaultMessages.settingsPage.projectId.title).should('not.exist')
     cy.findByText(defaultMessages.runs.connect.buttonUser).should('be.visible')
     cy.findByText(defaultMessages.settingsPage.recordKey.title).should('not.exist')
-
-    cy.percySnapshot()
   })
 
   it('hides Record Key when not present', () => {
@@ -55,7 +54,7 @@ describe('<CloudSettings />', () => {
       },
       render: (gqlVal) => {
         return (
-          <div class="py-4 px-8 children:py-24px">
+          <div class="py-4 px-8 children:py-[24px]">
             <CloudSettings gql={gqlVal}/>
           </div>
         )
@@ -64,6 +63,6 @@ describe('<CloudSettings />', () => {
 
     cy.findByText(defaultMessages.settingsPage.recordKey.title).should('not.exist')
 
-    cy.percySnapshot()
+    cy.get('button').contains('Connect to Cypress Cloud')
   })
 })

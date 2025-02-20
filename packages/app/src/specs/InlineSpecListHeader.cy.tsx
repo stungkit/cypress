@@ -1,5 +1,6 @@
 import InlineSpecListHeader from './InlineSpecListHeader.vue'
 import { ref } from 'vue'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import { defineStore } from 'pinia'
 
@@ -82,7 +83,6 @@ describe('InlineSpecListHeader', () => {
     useRunAllSpecsStore()
 
     mountWithProps({ isRunAllSpecsAllowed: true })
-    cy.percySnapshot()
 
     cy.get('[data-cy=run-all-specs-for-all]').as('run-all-btn').realHover()
     cy.contains(`Run ${EXPECTED_SPEC_COUNT} specs`).should('be.visible')

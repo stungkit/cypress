@@ -6,13 +6,14 @@ const pkg = require('@packages/root')
 const Fixtures = require('@tooling/system-tests')
 const { sinon } = require('../spec_helper')
 const config = require(`../../lib/config`)
-const { ServerE2E } = require(`../../lib/server-e2e`)
+const { ServerBase } = require(`../../lib/server-base`)
 const { ProjectBase } = require(`../../lib/project-base`)
 const { Automation } = require(`../../lib/automation`)
 const savedState = require(`../../lib/saved_state`)
 const runEvents = require(`../../lib/plugins/run_events`)
 const system = require(`../../lib/util/system`)
 const { getCtx } = require(`../../lib/makeDataContext`)
+const studio = require('../../lib/cloud/api/get_app_studio')
 
 let ctx
 
@@ -33,11 +34,21 @@ describe('lib/project-base', () => {
 
     sinon.stub(runEvents, 'execute').resolves()
 
+    this.testAppStudio = {
+      initializeRoutes: () => {},
+    }
+
+    sinon.stub(studio, 'getAppStudio').resolves(this.testAppStudio)
+
     await ctx.actions.project.setCurrentProjectAndTestingTypeForTestSetup(this.todosPath)
     this.config = await ctx.project.getConfig()
 
     this.project = new ProjectBase({ projectRoot: this.todosPath, testingType: 'e2e' })
-    this.project._server = { close () {} }
+    this.project._server = {
+      close () {},
+      setProtocolManager () {},
+    }
+
     this.project._cfg = this.config
   })
 
@@ -95,7 +106,7 @@ describe('lib/project-base', () => {
       .then((state) => expect(state).to.deep.eq({ appWidth: 42, appHeight: true }))
     })
 
-    it('modifes property', function () {
+    it('modifies property', function () {
       return this.project.saveState()
       .then(() => this.project.saveState({ appWidth: 42 }))
       .then(() => this.project.saveState({ appWidth: 'modified' }))
@@ -220,12 +231,103 @@ This option will not have an effect in Some-other-name. Tests that rely on web s
     })
   })
 
+  context('#getConfig', () => {
+    it('returns the enabled state of the protocol manager if it is defined', function () {
+      this.project.protocolManager = {
+        protocolEnabled: true,
+      }
+
+      const config = this.project.getConfig()
+
+      expect(config.protocolEnabled).to.be.true
+    })
+
+    it('returns false for protocolEnabled if the protocol manager is undefined', function () {
+      const config = this.project.getConfig()
+
+      expect(config.protocolEnabled).to.be.false
+    })
+
+    context('hideCommandLog', () => {
+      it('returns true if NO_COMMAND_LOG is set', function () {
+        this.project._cfg.env.NO_COMMAND_LOG = 1
+
+        const config = this.project.getConfig()
+
+        expect(config.hideCommandLog).to.be.true
+      })
+
+      it('returns false if NO_COMMAND_LOG is not set', function () {
+        const config = this.project.getConfig()
+
+        expect(config.hideCommandLog).to.be.false
+      })
+    })
+
+    context('hideRunnerUi', () => {
+      beforeEach(function () {
+        this.project.options.args = {}
+      })
+
+      it('returns true if runnerUi arg is set to false', function () {
+        this.project.options.args.runnerUi = false
+
+        const config = this.project.getConfig()
+
+        expect(config.hideRunnerUi).to.be.true
+      })
+
+      it('returns false if runnerUi arg is set to true', function () {
+        this.project.options.args.runnerUi = true
+
+        const config = this.project.getConfig()
+
+        expect(config.hideRunnerUi).to.be.false
+      })
+
+      it('sets hideCommandLog to true if hideRunnerUi arg is set to true even if NO_COMMAND_LOG is 0', function () {
+        this.project.options.args.runnerUi = false
+        this.project._cfg.env.NO_COMMAND_LOG = 0
+
+        const config = this.project.getConfig()
+
+        expect(config.hideRunnerUi).to.be.true
+        expect(config.hideCommandLog).to.be.true
+      })
+
+      it('returns true if runnerUi arg is not set and protocol is enabled', function () {
+        this.project.protocolManager = { protocolEnabled: true }
+
+        const config = this.project.getConfig()
+
+        expect(config.hideRunnerUi).to.be.true
+      })
+
+      it('returns false if runnerUi arg is not set and protocol is not enabled', function () {
+        this.project.protocolManager = { protocolEnabled: false }
+
+        const config = this.project.getConfig()
+
+        expect(config.hideRunnerUi).to.be.false
+      })
+
+      it('returns false if runnerUi arg is set to true and protocol is enabled', function () {
+        this.project.protocolManager = { protocolEnabled: true }
+        this.project.options.args.runnerUi = true
+
+        const config = this.project.getConfig()
+
+        expect(config.hideRunnerUi).to.be.false
+      })
+    })
+  })
+
   context('#open', () => {
     beforeEach(function () {
       sinon.stub(this.project, 'startWebsockets')
       sinon.stub(this.project, 'getConfig').returns(this.config)
-      sinon.stub(ServerE2E.prototype, 'open').resolves([])
-      sinon.stub(ServerE2E.prototype, 'reset')
+      sinon.stub(ServerBase.prototype, 'open').resolves([])
+      sinon.stub(ServerBase.prototype, 'reset')
     })
 
     it('calls #startWebsockets with options + config', function () {
@@ -264,7 +366,7 @@ This option will not have an effect in Some-other-name. Tests that rely on web s
 
       return this.project.open()
       .then(() => {
-        expect(runEvents.execute).to.be.calledWith('before:run', this.config, {
+        expect(runEvents.execute).to.be.calledWith('before:run', {
           config: this.config,
           cypressVersion: pkg.version,
           system: sysInfo,
@@ -326,6 +428,30 @@ This option will not have an effect in Some-other-name. Tests that rely on web s
         expect(system.info).not.to.be.called
         expect(runEvents.execute).not.to.be.calledWith('before:run')
       })
+    })
+
+    it('gets app studio for the project id if CYPRESS_ENABLE_CLOUD_STUDIO is set', async function () {
+      process.env.CYPRESS_ENABLE_CLOUD_STUDIO = '1'
+
+      await this.project.open()
+
+      expect(studio.getAppStudio).to.be.calledWith('abc123')
+      expect(ctx.coreData.studio).to.eq(this.testAppStudio)
+    })
+
+    it('gets app studio for the project id if CYPRESS_LOCAL_STUDIO_PATH is set', async function () {
+      process.env.CYPRESS_LOCAL_STUDIO_PATH = '/path/to/app/studio'
+
+      await this.project.open()
+
+      expect(studio.getAppStudio).to.be.calledWith('abc123')
+      expect(ctx.coreData.studio).to.eq(this.testAppStudio)
+    })
+
+    it('does not get app studio if neither CYPRESS_ENABLE_CLOUD_STUDIO nor CYPRESS_LOCAL_STUDIO_PATH is set', async function () {
+      await this.project.open()
+      expect(studio.getAppStudio).not.to.be.called
+      expect(ctx.coreData.studio).to.be.null
     })
 
     describe('saved state', function () {
@@ -417,7 +543,7 @@ This option will not have an effect in Some-other-name. Tests that rely on web s
 
       return this.project.close()
       .then(() => {
-        expect(runEvents.execute).to.be.calledWith('after:run', this.config)
+        expect(runEvents.execute).to.be.calledWith('after:run')
       })
     })
 

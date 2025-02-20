@@ -2,6 +2,7 @@ import SnapshotControls from './SnapshotControls.vue'
 import { autSnapshot } from '../../cypress/support/fixtures'
 import { useSnapshotStore } from './snapshot-store'
 import { createEventManager, createTestAutIframe } from '../../cypress/component/support/ctSupport'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 
 const snapshotWithSnapshots = { ...autSnapshot }
@@ -11,10 +12,6 @@ const snapshotControlsSelector = '[data-testid=snapshot-controls]'
 const unpinButtonSelector = '[data-testid=unpin]'
 
 describe('SnapshotControls', { viewportHeight: 200, viewportWidth: 500 }, () => {
-  afterEach(() => {
-    cy.wait(100).percySnapshot()
-  })
-
   const mountSnapshotControls = (
     eventManager = createEventManager(),
     autIframe = createTestAutIframe(),

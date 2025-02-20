@@ -1,5 +1,6 @@
 import { Specs_InlineSpecListFragment, Specs_InlineSpecListFragmentDoc, SpecFilter_SetPreferencesDocument, RunAllSpecsDocument } from '../generated/graphql-test'
 import InlineSpecList from './InlineSpecList.vue'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 
 let specs: Array<any> = []
@@ -72,7 +73,11 @@ describe('InlineSpecList', () => {
       cy.get(newSpecSelector).click()
       cy.contains(defaultMessages.createSpec.newSpecModalTitle).should('be.visible')
 
-      cy.percySnapshot()
+      cy.contains(defaultMessages.createSpec.e2e.importFromScaffold.header).should('be.visible')
+      cy.contains(defaultMessages.createSpec.e2e.importFromScaffold.description).should('be.visible')
+
+      cy.contains(defaultMessages.createSpec.e2e.importTemplateSpec.header).should('be.visible')
+      cy.contains(defaultMessages.createSpec.e2e.importTemplateSpec.description).should('be.visible')
     })
 
     it('should handle spec refresh', () => {

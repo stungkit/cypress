@@ -2,6 +2,7 @@ import Bluebird from 'bluebird'
 import $errUtils from '../../../cypress/error_utils'
 import $stackUtils from '../../../cypress/stack_utils'
 import { Validator } from './validator'
+import { isFunction } from 'lodash'
 import { createUnserializableSubjectProxy } from './unserializable_subject_proxy'
 import { serializeRunnable } from './util'
 import { preprocessConfig, preprocessEnv, syncConfigToCurrentOrigin, syncEnvToCurrentOrigin } from '../../../util/config'
@@ -9,6 +10,7 @@ import { $Location } from '../../../cypress/location'
 import { LogUtils } from '../../../cypress/log'
 import logGroup from '../../logGroup'
 import type { StateFunc } from '../../../cypress/state'
+import { runPrivilegedCommand } from '../../../util/privileged_channel'
 
 const reHttp = /^https?:\/\//
 
@@ -23,11 +25,14 @@ const normalizeOrigin = (urlOrDomain) => {
   return $Location.normalize(origin)
 }
 
+type OptionsOrFn<T> = { args: T } | (() => {})
+type Fn<T> = (args?: T) => {}
+
 export default (Commands, Cypress: Cypress.Cypress, cy: Cypress.cy, state: StateFunc, config: Cypress.InternalConfig) => {
   const communicator = Cypress.primaryOriginCommunicator
 
   Commands.addAll({
-    origin<T> (urlOrDomain: string, optionsOrFn: { args: T } | (() => {}), fn?: (args?: T) => {}) {
+    origin<T> (urlOrDomain: string, optionsOrFn: OptionsOrFn<T>, fn?: Fn<T>, ...extras: never[]) {
       if (Cypress.isBrowser('webkit')) {
         return $errUtils.throwErrByPath('webkit.origin')
       }
@@ -181,15 +186,27 @@ export default (Commands, Cypress: Cypress.Cypress, cy: Cypress.cy, state: State
 
             // Attach the spec bridge to the window to be tested.
             communicator.toSpecBridge(origin, 'attach:to:window')
+            const fn = isFunction(callbackFn) ? callbackFn.toString() : callbackFn
+            const file = $stackUtils.getSourceDetailsForFirstLine(userInvocationStack, config('projectRoot'))?.absoluteFile
 
-            const fn = _.isFunction(callbackFn) ? callbackFn.toString() : callbackFn
-
-            // once the secondary origin page loads, send along the
-            // user-specified callback to run in that origin
             try {
+              // origin is a privileged command, meaning it has to be invoked
+              // from the spec or support file
+              await runPrivilegedCommand({
+                commandName: 'origin',
+                cy,
+                Cypress: (Cypress as unknown) as InternalCypress.Cypress,
+                options: {
+                  specBridgeOrigin,
+                },
+              })
+
+              // once the secondary origin page loads, send along the
+              // user-specified callback to run in that origin
               communicator.toSpecBridge(origin, 'run:origin:fn', {
                 args: options?.args || undefined,
                 fn,
+                file,
                 // let the spec bridge version of Cypress know if config read-only values can be overwritten since window.top cannot be accessed in cross-origin iframes
                 // this should only be used for internal testing. Cast to boolean to guarantee serialization
                 // @ts-ignore
@@ -210,6 +227,12 @@ export default (Commands, Cypress: Cypress.Cypress, cy: Cypress.cy, state: State
                 logCounter: LogUtils.getCounter(),
               })
             } catch (err: any) {
+              if (err.isNonSpec) {
+                return _reject($errUtils.errByPath('miscellaneous.non_spec_invocation', {
+                  cmd: 'origin',
+                }))
+              }
+
               const wrappedErr = $errUtils.errByPath('origin.run_origin_fn_errored', {
                 error: err.message,
               })

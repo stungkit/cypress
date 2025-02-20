@@ -1,4 +1,5 @@
 import CodeBox from './CodeBox.vue'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import IconOctothorpe from '~icons/cy/octothorpe_x16.svg'
 
 describe('<CodeBox/>', () => {
@@ -9,7 +10,6 @@ describe('<CodeBox/>', () => {
       </div>))
 
     cy.findByText('123456789').should('be.visible')
-    cy.percySnapshot()
   })
 
   it('renders the confidential', () => {
@@ -21,7 +21,6 @@ describe('<CodeBox/>', () => {
     cy.findByText('123456789').should('not.exist')
     cy.get('[aria-label="Record Key Visibility Toggle"]').click()
     cy.findByText('123456789').should('be.visible')
-    cy.percySnapshot()
   })
 
   it('renders the icon', () => {

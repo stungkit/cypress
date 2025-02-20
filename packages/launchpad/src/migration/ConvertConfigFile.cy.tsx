@@ -1,3 +1,4 @@
+// tslint:disable-next-line: no-implicit-dependencies - need to handle this
 import { defaultMessages } from '@cy/i18n'
 import { ConvertConfigFileFragmentDoc } from '../generated/graphql-test'
 import ConvertConfigFile from './ConvertConfigFile.vue'
@@ -11,7 +12,7 @@ describe('<ConvertConfigFile/>', { viewportWidth: 1119 }, () => {
         return res
       },
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <ConvertConfigFile gql={gql} />
         </div>)
       },
@@ -29,7 +30,7 @@ describe('<ConvertConfigFile/>', { viewportWidth: 1119 }, () => {
         return res
       },
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <ConvertConfigFile gql={gql} />
         </div>)
       },
@@ -48,7 +49,7 @@ describe('<ConvertConfigFile/>', { viewportWidth: 1119 }, () => {
         return res
       },
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <ConvertConfigFile gql={gql} />
         </div>)
       },
@@ -66,7 +67,7 @@ describe('<ConvertConfigFile/>', { viewportWidth: 1119 }, () => {
         return res
       },
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <ConvertConfigFile gql={gql} />
         </div>)
       },
@@ -86,7 +87,7 @@ describe('<ConvertConfigFile/>', { viewportWidth: 1119 }, () => {
         return res
       },
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <ConvertConfigFile gql={gql} />
         </div>)
       },
@@ -101,7 +102,7 @@ describe('<ConvertConfigFile/>', { viewportWidth: 1119 }, () => {
   it('renders expected content with title', () => {
     cy.mountFragment(ConvertConfigFileFragmentDoc, {
       render (gql) {
-        return (<div class="p-16px">
+        return (<div class="p-[16px]">
           <ConvertConfigFile gql={gql} />
         </div>)
       },

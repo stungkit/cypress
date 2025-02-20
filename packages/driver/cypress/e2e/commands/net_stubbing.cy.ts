@@ -1,4 +1,4 @@
-import { getDisplayUrlMatcher } from '@packages/driver/src/cy/net-stubbing/route-matcher-log'
+import { getDisplayUrlMatcher } from '../../../src/cy/net-stubbing/route-matcher-log'
 import type { RouteMatcherOptions } from '@packages/net-stubbing/lib/external-types'
 
 const testFail = (cb, expectedDocsUrl = 'https://on.cypress.io/intercept') => {
@@ -26,6 +26,9 @@ describe('network stubbing', { retries: 15 }, function () {
 
   beforeEach(function () {
     cy.spy(Cypress.utils, 'warning')
+    // Starting in Electron 28, we cannot use fetch or XHR from within about:blank. This is a workaround
+    // to ensure that we have a valid origin for our tests.
+    cy.visit('/fixtures/empty.html')
   })
 
   context('cy.intercept()', function () {
@@ -936,13 +939,24 @@ describe('network stubbing', { retries: 15 }, function () {
     // @see https://github.com/cypress-io/cypress/issues/8497
     it('can load transfer-encoding: chunked redirects', function () {
       cy.intercept('*')
-      const url4 = 'http://localhost:3501/fixtures/generic.html'
-      const url3 = `http://localhost:3501/redirect?href=${encodeURIComponent(url4)}`
-      const url2 = `https://localhost:3502/redirect?chunked=1&href=${encodeURIComponent(url3)}`
-      const url1 = `https://localhost:3502/redirect?chunked=1&href=${encodeURIComponent(url2)}`
+      const originOne = 'http://foobar.com:3500'
+      const originTwo = Cypress.config('injectDocumentDomain') ? 'http://localhost:3501' : 'http://foobar.com:3501'
 
-      cy.visit(url1)
-      .location('href').should('eq', url4)
+      const url4 = `${originTwo}/fixtures/generic.html`
+      const url3 = `${originTwo}/redirect?href=${encodeURIComponent(url4)}`
+      const url2 = `${originOne}/redirect?chunked=1&href=${encodeURIComponent(url3)}`
+      const url1 = `${originOne}/redirect?chunked=1&href=${encodeURIComponent(url2)}`
+
+      cy.visit(`${originOne}/fixtures/empty.html`)
+
+      cy.visit(url1).as('redirect')
+      if (Cypress.config('injectDocumentDomain')) {
+        cy.location('href').should('eq', url4)
+      } else {
+        cy.origin('http://foobar.com:3501', { args: [url4] }, ([url4]) => {
+          cy.location('href').should('eq', url4)
+        })
+      }
     })
 
     context('can intercept against any domain', function () {
@@ -1381,8 +1395,7 @@ describe('network stubbing', { retries: 15 }, function () {
       // @see https://github.com/cypress-io/cypress/issues/19330
       // @see https://github.com/cypress-io/cypress/issues/19344
       it('load fixture as Buffer when encoding is null', function () {
-        // call through normally on everything
-        cy.spy(Cypress, 'backend')
+        cy.spy(Cypress, 'backend').log(false)
 
         cy.intercept('/fixtures/media/small.mp4', {
           fixture: 'media/small.mp4,null',
@@ -1390,8 +1403,7 @@ describe('network stubbing', { retries: 15 }, function () {
 
         cy.visit('/fixtures/video.html')
         .then(() => {
-          // @ts-ignore .getCall is a Sinon spy command
-          expect(Cypress.backend.getCall(0)).to.be.calledWithMatch(
+          expect(Cypress.backend).to.be.calledWithMatch(
             'net',
             'route:added',
             {
@@ -1407,8 +1419,7 @@ describe('network stubbing', { retries: 15 }, function () {
       })
 
       it('load fixture with specified encoding', function () {
-        // call through normally on everything
-        cy.spy(Cypress, 'backend')
+        cy.spy(Cypress, 'backend').log(false)
 
         cy.intercept('non-existing-image.png', {
           headers: { 'content-type': 'image/jpeg' },
@@ -1417,8 +1428,7 @@ describe('network stubbing', { retries: 15 }, function () {
 
         cy.visit('/fixtures/img-embed.html')
         .then(() => {
-          // @ts-ignore .getCall is a Sinon spy command
-          expect(Cypress.backend.getCall(0)).to.be.calledWithMatch(
+          expect(Cypress.backend).to.be.calledWithMatch(
             'net',
             'route:added',
             {
@@ -1623,7 +1633,7 @@ describe('network stubbing', { retries: 15 }, function () {
       })
     })
 
-    it('can modify the request body', function () {
+    it('can modify the request body', function (done) {
       const body = '{"foo":"bar"}'
 
       cy.intercept('/post-only', function (req) {
@@ -1634,15 +1644,17 @@ describe('network stubbing', { retries: 15 }, function () {
       }).then(function () {
         $.post('/post-only', 'quuz').done((responseText) => {
           expect(responseText).to.contain(body)
+
+          done()
         })
       })
     })
 
     // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23422
-    it.skip('can add a body to a request that does not have one', function () {
+    it('can add a body to a request that does not have one', { retries: 15 }, function (done) {
       const body = '{"foo":"bar"}'
 
-      cy.intercept('/post-only', function (req) {
+      cy.intercept('/post-only*', function (req) {
         expect(req.body).to.eq('')
         expect(req.method).to.eq('GET')
         req.method = 'POST'
@@ -1650,8 +1662,9 @@ describe('network stubbing', { retries: 15 }, function () {
 
         req.body = body
       }).then(function () {
-        $.get('/post-only').done((responseText) => {
+        $.get('/post-only').then((responseText) => {
           expect(responseText).to.contain(body)
+          done()
         })
       })
     })
@@ -1670,7 +1683,7 @@ describe('network stubbing', { retries: 15 }, function () {
     })
 
     // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23303
-    it.skip('can delay and throttle a StaticResponse', function (done) {
+    it('can delay and throttle a StaticResponse', { retries: 15 }, function (done) {
       const payload = 'A'.repeat(10 * 1024)
       const throttleKbps = 10
       const delay = 250
@@ -1695,26 +1708,9 @@ describe('network stubbing', { retries: 15 }, function () {
       })
     })
 
-    // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23404
-    it.skip('can delay with deprecated delayMs param', function () {
-      const delayMs = 250
-
-      cy.intercept('/timeout*', (req) => {
-        this.start = Date.now()
-
-        req.reply({
-          delayMs,
-        })
-      }).then(() => {
-        return $.get('/timeout').then((responseText) => {
-          expect(Date.now() - this.start).to.be.closeTo(delayMs + 100, 100)
-        })
-      })
-    })
-
     // @see https://github.com/cypress-io/cypress/issues/14446
     // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23406
-    it.skip('should delay the same amount on every response', () => {
+    it('should delay the same amount on every response', { retries: 15 }, () => {
       const delay = 250
 
       const testDelay = () => {
@@ -1750,6 +1746,7 @@ describe('network stubbing', { retries: 15 }, function () {
       }).as('create')
 
       cy.then(() => {
+        // tslint:disable:no-floating-promises
         fetch('/post-only', {
           method: 'POST', // *GET, POST, PUT, DELETE, etc.
         })
@@ -1829,7 +1826,7 @@ describe('network stubbing', { retries: 15 }, function () {
         })
 
         // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23407
-        it.skip('by doing both', () => {
+        it('by doing both', { retries: 15 }, () => {
           cy.intercept({ url: '/users*' }, (req) => {
             req.query = {
               a: 'b',
@@ -1852,7 +1849,7 @@ describe('network stubbing', { retries: 15 }, function () {
         })
 
         // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23414
-        it.skip('by deleting query member', () => {
+        it('by deleting query member', { retries: 15 }, () => {
           cy.intercept({ url: '/users*' }, (req) => {
             req.query = {
               a: 'b',
@@ -1876,7 +1873,7 @@ describe('network stubbing', { retries: 15 }, function () {
 
         context('by setting new url', () => {
           // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23415
-          it.skip('absolute path', () => {
+          it('absolute path', { retries: 15 }, () => {
             cy.intercept({ url: '/users*' }, (req) => {
               req.url = 'http://localhost:3500/users?a=b'
 
@@ -1894,7 +1891,7 @@ describe('network stubbing', { retries: 15 }, function () {
           })
 
           // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23433
-          it.skip('relative path', () => {
+          it('relative path', { retries: 15 }, () => {
             cy.intercept({ url: '/users*' }, (req) => {
               req.url = '/users?a=b'
 
@@ -1913,7 +1910,7 @@ describe('network stubbing', { retries: 15 }, function () {
           })
 
           // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23434
-          it.skip('empty string', () => {
+          it('empty string', { retries: 15 }, () => {
             cy.intercept({ url: '/users*' }, (req) => {
               req.url = ''
 
@@ -1933,7 +1930,7 @@ describe('network stubbing', { retries: 15 }, function () {
 
         context('throwing errors correctly', () => {
           // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23423
-          it.skip('defineproperty', (done) => {
+          it('defineproperty', { retries: 15 }, (done) => {
             cy.on('fail', (err) => {
               expect(err.message).to.eq('`defineProperty()` is not allowed.')
 
@@ -1962,7 +1959,7 @@ describe('network stubbing', { retries: 15 }, function () {
           })
 
           // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23147
-          it.skip('setPrototypeOf', (done) => {
+          it('setPrototypeOf', { retries: 15 }, (done) => {
             cy.on('fail', (err) => {
               expect(err.message).to.eq('`setPrototypeOf()` is not allowed.')
 
@@ -1992,7 +1989,7 @@ describe('network stubbing', { retries: 15 }, function () {
       context('can end response', () => {
         for (const eventName of ['before:response', 'response']) {
           // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23434
-          it.skip(`in \`${eventName}\``, () => {
+          it(`in \`${eventName}\``, { retries: 15 }, () => {
             const url = uniqueRoute('/foo')
             const expectBeforeResponse = eventName === 'response'
             let beforeResponseCalled = false
@@ -2203,7 +2200,7 @@ describe('network stubbing', { retries: 15 }, function () {
 
       context('with `times`', function () {
         // TODO: fix flaky test https://github.com/cypress-io/cypress/issues/23434
-        it.skip('only uses each handler N times', function () {
+        it('only uses each handler N times', { browser: '!webkit', retries: 15 }, function () {
           const url = uniqueRoute('/foo')
           const third = sinon.stub()
 
@@ -2496,6 +2493,30 @@ describe('network stubbing', { retries: 15 }, function () {
         }).visit('/dump-method')
       })
 
+      it('fails test if both req.reply and req.continue are called in req handler', function (done) {
+        testFail((err) => {
+          expect(err.message).to.contain('`req.reply()` and/or `req.continue()` were called to signal request completion multiple times, but a request can only be completed once')
+          done()
+        })
+
+        cy.intercept('/dump-method', function (req) {
+          req.reply()
+
+          req.continue()
+        }).visit('/dump-method')
+      })
+
+      it('fails test if req.continue is called with a non-function parameter', function (done) {
+        testFail((err) => {
+          expect(err.message).to.contain('\`req.continue\` requires the parameter to be a function')
+          done()
+        })
+
+        cy.intercept('/dump-method', function (req) {
+          req.continue({} as any)
+        }).visit('/dump-method')
+      })
+
       it('fails test if req.reply is called after req handler finishes', function (done) {
         testFail((err) => {
           expect(err.message).to.contain('> `req.reply()` was called after the request handler finished executing')
@@ -2601,6 +2622,22 @@ describe('network stubbing', { retries: 15 }, function () {
         })
         .then(() => {
           $.post('/post-only', 'baz')
+        })
+      })
+
+      // @see https://github.com/cypress-io/cypress/issues/24407
+      it('does not calculate content-length on spied request if one does not exist on the initial request (if merging)', { retries: 0 }, function (done) {
+        cy.intercept('/verify-content-length-is-absent*', function (req) {
+          // modify the intercepted request to trigger a request merge in net_stubbing
+          req.headers['foo'] = 'bar'
+          // send the modified request and skip any other
+          // matching request handlers
+          req.continue()
+        }).then(async () => {
+          const isContentLengthHeaderAbsent = await $.get('/verify-content-length-is-absent')
+
+          expect(isContentLengthHeaderAbsent).to.be.true
+          done()
         })
       })
     })
@@ -3268,7 +3305,10 @@ describe('network stubbing', { retries: 15 }, function () {
           done()
         })
 
-        cy.intercept('/should-err*', function (req) {
+        // TODO: added `times: 1` because this test is very flaky. we should investigate the root cause
+        // (it seems like we are getting multiple requests and that is triggering the issue)
+        // https://github.com/orgs/cypress-io/projects/10/views/22?pane=issue&itemId=32520743
+        cy.intercept('/should-err*', { times: 1 }, function (req) {
           req.reply(() => {})
         }).then(function () {
           $.get('http://localhost:3333/should-err')
@@ -3327,7 +3367,10 @@ describe('network stubbing', { retries: 15 }, function () {
           done()
         })
 
-        cy.intercept('/timeout*', (req) => {
+        // TODO: added `times: 1` because this test is very flaky. we should investigate the root cause
+        // (it seems like we are getting multiple requests and that is triggering the issue)
+        // https://github.com/orgs/cypress-io/projects/10/views/22?pane=issue&itemId=32520743
+        cy.intercept('/timeout*', { times: 1 }, (req) => {
           req.reply(_.noop)
         }).then(() => {
           $.get('/timeout?ms=50')
@@ -3690,6 +3733,25 @@ describe('network stubbing', { retries: 15 }, function () {
         })
       })
 
+      // @see https://github.com/cypress-io/cypress/issues/25448
+      it('gets all aliased Interceptions by alias.all when assigning an alias using req.alias', function () {
+        const url = uniqueRoute('/foo')
+
+        cy.intercept(`${url}*`, (req) => {
+          req.alias = 'alias'
+          req.reply({ bar: 'baz' })
+        })
+        .then(() => {
+          $.get(url)
+          $.get(url)
+        })
+        .wait('@alias').wait('@alias')
+
+        cy.get('@alias.all').then((interceptions) => {
+          expect(interceptions).to.have.length(2)
+        })
+      })
+
       // TODO: fix+document this behavior
       // @see https://github.com/cypress-io/cypress/issues/7663
       it.skip('gets indexed Interception by alias.number', function () {
@@ -3748,6 +3810,31 @@ describe('network stubbing', { retries: 15 }, function () {
           $.get(url)
         })
         .wait('@fromInterceptor')
+        .then(() => {
+          const log = cy.queue.logs({
+            displayName: 'xhr',
+          })[0]
+
+          const renderProps = log.get('renderProps')()
+
+          expect(renderProps.interceptions).to.have.length(1)
+          expect(renderProps.interceptions[0]).to.have.property('alias')
+          expect(renderProps.interceptions[0].alias).to.eq('fromInterceptor')
+        })
+      })
+
+      it('can dynamically alias the request and get with @alias.all', function () {
+        const url = uniqueRoute('/foo')
+
+        cy.intercept(`${url}*`, (req) => {
+          req.alias = 'fromInterceptor'
+        })
+        .then(() => {
+          $.get(url)
+          $.get(url)
+        })
+        .wait('@fromInterceptor').wait('@fromInterceptor')
+        .get('@fromInterceptor.all').should('have.length', 2)
       })
 
       it('can time out on a dynamic alias', function (done) {

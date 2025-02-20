@@ -1,5 +1,6 @@
 import TestingTypePicker from './TestingTypePicker.vue'
 import { TestingTypePickerFragmentDoc } from '../generated/graphql-test'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 
 const { component, e2e, componentDisabled } = defaultMessages.testingType
@@ -32,13 +33,9 @@ describe('TestingTypePicker', () => {
       cy.contains(defaultMessages.setupPage.testingCard.configured).should('be.visible')
     })
 
-    cy.percySnapshot('before click')
-
     cy.contains(e2e.name).click()
     cy.contains(component.name).click()
     cy.get('@pick').should('have.been.calledTwice')
-
-    cy.percySnapshot('after click - focus')
   })
 
   it('shows disabled ct when not invoked from cli', () => {
@@ -60,7 +57,5 @@ describe('TestingTypePicker', () => {
     }).click()
 
     cy.get('@pick').should('not.have.been.called')
-
-    cy.percySnapshot()
   })
 })

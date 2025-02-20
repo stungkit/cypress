@@ -6,9 +6,9 @@
       :icon="ErrorOutlineIcon"
       :dismissible="false"
       :overflow="false"
-      class="w-full max-w-600px"
+      class="w-full max-w-[600px]"
     >
-      <div class="flex flex-col gap-16px">
+      <div class="flex flex-col gap-[16px]">
         <p>
           {{ t('runner.automation.missing.description') }}
         </p>
@@ -19,15 +19,15 @@
           data-cy="select-browser"
         >
           <template #heading>
-            <img
-              class="min-w-16px w-16px"
-              :src="allBrowsersIcons[selectedBrowser.displayName] || allBrowsersIcons.generic"
-            >
+            <component
+              :is="allBrowsersIcons[selectedBrowser.displayName?.toLowerCase()] || allBrowsersIcons.generic"
+              class="min-w-[16px] w-[16px]"
+            />
             {{ selectedBrowser.displayName }} {{ selectedBrowser.majorVersion }}
           </template>
 
           <template #default>
-            <div class="max-h-50vh overflow-auto">
+            <div class="max-h-[50vh] overflow-auto">
               <VerticalBrowserListItems
                 :gql="props.gql"
               />
@@ -35,10 +35,10 @@
           </template>
         </SpecRunnerDropdown>
         <ExternalLink
-          class="mt-16px text-indigo-500"
+          class="mt-[16px] text-indigo-500"
           href="https://on.cypress.io/launching-browsers"
         >
-          <i-cy-book_x16 class="ml-8px -top-2px relative inline-block icon-dark-indigo-500 icon-light-indigo-100" />
+          <i-cy-book_x16 class="ml-[8px] -top-[2px] relative inline-block icon-dark-indigo-500 icon-light-indigo-100" />
           {{ t('runner.automation.shared.link') }}
         </ExternalLink>
       </div>
@@ -56,7 +56,7 @@ import type { AutomationMissingFragment } from '../../generated/graphql'
 import SpecRunnerDropdown from '../SpecRunnerDropdown.vue'
 import { ref } from 'vue'
 import { allBrowsersIcons } from '@packages/frontend-shared/src/assets/browserLogos'
-import Alert from '../../../../frontend-shared/src/components/Alert.vue'
+import Alert from '@packages/frontend-shared/src/components/Alert.vue'
 import ErrorOutlineIcon from '~icons/cy/status-errored-outline_x16.svg'
 
 const { t } = useI18n()

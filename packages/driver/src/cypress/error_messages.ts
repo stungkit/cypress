@@ -141,6 +141,8 @@ export default {
     reserved_word: {
       message: `${cmd('as')} cannot be aliased as: \`{{alias}}\`. This word is reserved.`,
     },
+    invalid_options: `${cmd('as')} only accepts an options object for its second argument. You passed: \`{{arg}}\``,
+    invalid_options_type: `${cmd('as')} only accepts a \`type\` of \`'query'\` or \`'static'\`. You passed: \`{{type}}\``,
   },
 
   blur: {
@@ -270,6 +272,10 @@ export default {
         message: `The \`{{invalidConfigKey}}\` configuration can only be overridden from a suite-level override.`,
         docsUrl: 'https://on.cypress.io/config',
       },
+      global_only: {
+        message: `The \`{{invalidConfigKey}}\` configuration can only be set globally.`,
+        docsUrl: 'https://on.cypress.io/config',
+      },
     },
     invalid_test_override: {
       message: `The config passed to your {{overrideLevel}}-level overrides has the following validation error:\n\n{{errMsg}}`,
@@ -292,6 +298,10 @@ export default {
     },
     regex_conflict: {
       message: `You passed a regular expression with the case-insensitive (_i_) flag and \`{ matchCase: true }\` to ${cmd('contains')}. Those options conflict with each other, so please choose one or the other.`,
+      docsUrl: 'https://on.cypress.io/contains',
+    },
+    invalid_option_timeout: {
+      message: `${cmd('contains')} only accepts a \`number\` for its \`timeout\` option. You passed: \`{{timeout}}\``,
       docsUrl: 'https://on.cypress.io/contains',
     },
   },
@@ -518,6 +528,12 @@ export default {
         docsUrl: `https://on.cypress.io/${_.toLower(obj.cmd)}`,
       }
     },
+    read_timed_out (obj) {
+      return {
+        message: `${cmd('readFile', '"{{file}}"')} timed out.`,
+        docsUrl: `https://on.cypress.io/readfile`,
+      }
+    },
     timed_out (obj) {
       return {
         message: `${cmd('{{cmd}}', '"{{file}}"')} timed out after waiting \`{{timeout}}ms\`.`,
@@ -559,6 +575,10 @@ export default {
     },
     invalid_options: {
       message: `${cmd('get')} only accepts an options object for its second argument. You passed {{options}}`,
+      docsUrl: 'https://on.cypress.io/get',
+    },
+    invalid_option_timeout: {
+      message: `${cmd('get')} only accepts a \`number\` for its \`timeout\` option. You passed: \`{{timeout}}\``,
       docsUrl: 'https://on.cypress.io/get',
     },
   },
@@ -745,6 +765,7 @@ export default {
   },
 
   miscellaneous: {
+    non_spec_invocation: `${cmd('{{cmd}}')} must only be invoked from the spec file or support file.`,
     returned_value_and_commands_from_custom_command (obj) {
       return {
         message: stripIndent`\
@@ -860,12 +881,16 @@ export default {
       docsUrl: 'https://on.cypress.io/api/custom-queries',
     },
     invalid_overwrite: {
-      message: 'Cannot overwite command for: `{{name}}`. An existing command does not exist by that name.',
-      docsUrl: 'https://on.cypress.io/api',
+      message: 'Cannot overwite command for: `{{name}}`. An existing {{type}} does not exist by that name.',
+      docsUrl: 'https://on.cypress.io/api/custom-commands',
+    },
+    invalid_overwrite_command_with_query: {
+      message: 'Cannot overwite the `{{name}}` command. Commands can only be overwritten with `Cypress.Commands.overwrite()`.',
+      docsUrl: 'https://on.cypress.io/api/custom-commands',
     },
     invalid_overwrite_query_with_command: {
-      message: 'Cannot overwite the `{{name}}` query. Queries cannot be overwritten.',
-      docsUrl: 'https://on.cypress.io/api',
+      message: 'Cannot overwite the `{{name}}` query. Queries can only be overwritten with `Cypress.Commands.overwriteQuery()`.',
+      docsUrl: 'https://on.cypress.io/api/custom-queries',
     },
     invoking_child_without_parent (obj) {
       return stripIndent`\
@@ -912,13 +937,15 @@ export default {
       return `Timed out retrying after ${ms}ms: `
     },
     test_stopped: 'Cypress test was stopped while running this command.',
-    cross_origin_command ({ commandOrigin, autOrigin }) {
+    cross_origin_command ({ commandOrigin, autOrigin, isSkipDomainInjectionEnabled }) {
       return {
         message: stripIndent`\
         The command was expected to run against origin \`${commandOrigin}\` but the application is at origin \`${autOrigin}\`.
 
         This commonly happens when you have either not navigated to the expected origin or have navigated away unexpectedly.
-        
+        ${isSkipDomainInjectionEnabled ? `
+        Unless \`injectDocumentDomain\` is disabled, a ${cmd('origin')} command is required.
+        ` : ''}
         Using ${cmd('origin')} to wrap the commands run on \`${autOrigin}\` will likely fix this issue.
 
         \`cy.origin('${autOrigin}', () => {\`
@@ -984,42 +1011,6 @@ export default {
         'full instructions for doing so at the following location.',
       ].join('\n'),
       docsUrl: 'https://on.cypress.io/mount',
-    },
-    removed_style_mounting_options (key: string) {
-      return {
-        message: `The \`${key}\` mounting option is no longer supported.`,
-        docsUrl: 'https://on.cypress.io/migration-11-0-0-component-testing-updates',
-      }
-    },
-    cleanup_styles: {
-      message: `\`cleanupStyles\` is no longer supported.`,
-      docsUrl: 'https://on.cypress.io/migration-11-0-0-component-testing-updates',
-    },
-    inject_styles_before_element: {
-      message: `\`injectStylesBeforeElement\` is no longer supported.`,
-      docsUrl: 'https://on.cypress.io/migration-11-0-0-component-testing-updates',
-    },
-    mount_hook: {
-      message: `\`mountHook\` is no longer supported.`,
-      docsUrl: 'https://on.cypress.io/migration-11-0-0-component-testing-updates',
-    },
-    unmount: {
-      message: `\`unmount\` is no longer supported.`,
-      docsUrl: 'https://on.cypress.io/migration-11-0-0-component-testing-updates',
-    },
-    mount_callback: {
-      message: `\`mountCallback\` is no longer supported.`,
-      docsUrl: 'https://on.cypress.io/migration-11-0-0-component-testing-updates',
-    },
-    vue_yielded_value: {
-      message: 'As of Cypress 11, mount now yields an object with VueWrapper and the component as properties. Destructure using `{ wrapper, component }` to access the VueWrapper and component.',
-      docsUrl: 'https://on.cypress.io/migration-11-0-0-component-testing-updates',
-    },
-    alias (alias: string) {
-      return {
-        message: `passing \`alias\` to mounting options is no longer supported. Use mount(...).as('${alias}') instead.`,
-        docsUrl: 'https://on.cypress.io/migration-11-0-0-component-testing-updates',
-      }
     },
   },
 
@@ -1127,6 +1118,7 @@ export default {
 
           You passed: ${format(eventName)}`, 10)
       },
+      req_continue_fn_only: '\`req.continue\` requires the parameter to be a function',
       event_needs_handler: `\`req.on()\` requires the second parameter to be a function.`,
       defineproperty_is_not_allowed: `\`defineProperty()\` is not allowed.`,
       setprototypeof_is_not_allowed: `\`setPrototypeOf()\` is not allowed.`,
@@ -1191,8 +1183,11 @@ export default {
       message: `${cmd('origin')} requires the first argument to be either a url (\`https://www.example.com/path\`) or a domain name (\`example.com\`). Query parameters are not allowed. You passed: \`{{arg}}\``,
     },
     invalid_url_argument_same_origin ({ originUrl, topOrigin, policy }) {
+      const useSuperdomainLanguage = policy === 'same-super-domain-origin'
+      const hostnameCategory = useSuperdomainLanguage ? 'superdomain' : 'origin'
+
       return stripIndent`\
-      ${cmd('origin')} requires the first argument to be a different ${policy === 'same-origin' ? 'origin' : 'domain' } than top. You passed \`${originUrl}\` to the origin command, while top is at \`${topOrigin}\`.
+      ${useSuperdomainLanguage ? 'When `injectDocumentDomain` is configured to true, ' : ''}${cmd('origin')} requires the first argument to be a different ${hostnameCategory} than top. You passed \`${originUrl}\` to the origin command, while top is at \`${topOrigin}\`.
 
       Either the intended page was not visited prior to running the cy.origin block or the cy.origin block may not be needed at all.
       `
@@ -1228,9 +1223,7 @@ export default {
 
         Variables must either be defined within the ${cmd('origin')} command or passed in using the args option.
 
-        Using \`require()\` or \`import()\` to include dependencies requires enabling the \`experimentalOriginDependencies\` flag and using the latest version of \`@cypress/webpack-preprocessor\`.
-        
-        Note: Using \`require()\` or \`import()\` within ${cmd('origin')} from a \`node_modules\` plugin is not currently supported.`,
+        Using \`require()\` or \`import()\` within the ${cmd('origin')} callback is not supported. Use ${cmd('Cypress.require')} to include dependencies instead, but note that it currently requires enabling the \`experimentalOriginDependencies\` flag.`,
     },
     callback_mixes_sync_and_async: {
       message: stripIndent`\
@@ -1483,6 +1476,21 @@ export default {
     url_wrong_type: {
       message: `${cmd('request')} requires the \`url\` to be a string.`,
       docsUrl: 'https://on.cypress.io/request',
+    },
+  },
+
+  require: {
+    invalid_inside_origin: {
+      message: `${cmd('Cypress.require')} is supposed to be replaced with a \`require()\` statement before the test code using it is run. If this error is being thrown, something unexpected has occurred. Please submit an issue.`,
+      docsUrl: 'https://on.cypress.io/origin',
+    },
+    invalid_outside_origin: {
+      message: `${cmd('Cypress.require')} can only be used inside the ${cmd('origin')} callback and requires enabling the \`experimentalOriginDependencies\` flag.`,
+      docsUrl: 'https://on.cypress.io/origin',
+    },
+    invalid_without_flag: {
+      message: `Using ${cmd('Cypress.require')} requires enabling the \`experimentalOriginDependencies\` flag.`,
+      docsUrl: 'https://on.cypress.io/origin',
     },
   },
 
@@ -1838,6 +1846,10 @@ export default {
   shadow: {
     no_shadow_root: {
       message: 'Expected the subject to host a shadow root, but never found it.',
+      docsUrl: 'https://on.cypress.io/shadow',
+    },
+    invalid_option_timeout: {
+      message: `${cmd('shadow')} only accepts a \`number\` for its \`timeout\` option. You passed: \`{{timeout}}\``,
       docsUrl: 'https://on.cypress.io/shadow',
     },
   },

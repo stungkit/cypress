@@ -3,6 +3,8 @@ import { snapshotReporter } from './support/snapshot-reporter'
 
 const validateSessionsInstrumentPanel = (sessionIds: Array<string> = []) => {
   cy.get('.sessions-container')
+  // there could be multiple retries where multiple session containers are rendered
+  .first()
   .should('contain', `Sessions (${sessionIds.length})`)
   .as('instrument_panel')
   .click()
@@ -736,6 +738,7 @@ describe('runner/cypress sessions.open_mode.spec', () => {
     cy.openProject('session-and-origin-e2e-specs')
     cy.startAppServer('e2e')
     cy.visitApp()
+    cy.specsPageIsVisible()
 
     cy.get('[data-cy-row="multiple_sessions.cy.js"]').click()
     cy.waitForSpecToFinish({
@@ -807,6 +810,7 @@ describe('global sessions', () => {
     cy.openProject('session-and-origin-e2e-specs')
     cy.startAppServer('e2e')
     cy.visitApp()
+    cy.specsPageIsVisible()
 
     cy.get('[data-cy-row="global_sessions.cy.js"]').click()
     cy.waitForSpecToFinish({

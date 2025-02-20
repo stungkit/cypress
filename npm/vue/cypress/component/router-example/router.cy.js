@@ -1,8 +1,9 @@
 import PizzaShop from './PizzaShop/index.vue'
 import router from './PizzaShop/router'
-import { mountCallback } from '@cypress/vue'
+import { mount } from '@cypress/vue'
 
-describe('Vue Router - Pizza Shop', () => {
+// TODO: fix with https://github.com/cypress-io/cypress/issues/30706
+describe.skip('Vue Router - Pizza Shop', () => {
   // configure component
   const extensions = {
     plugins: [router],
@@ -15,7 +16,9 @@ describe('Vue Router - Pizza Shop', () => {
   const template = '<router-view />'
 
   // initialize a fresh Vue app before each test
-  beforeEach(mountCallback({ template, router }, { extensions }))
+  beforeEach(() => {
+    mount({ template, router }, { extensions })
+  })
 
   it('go to order page', () => {
     cy.get('button.order').click()
@@ -91,13 +94,13 @@ describe('Vue Router - Pizza Shop', () => {
     cy.get('.order-overview > ul > li').contains('cheese')
   })
 
-  it('order hawaian + peppers pizza without using UI', () => {
+  it('order hawaiian + peppers pizza without using UI', () => {
     cy.wrap(Cypress.vue.$router)
     .then(($router) => $router.push({ name: 'home' }))
     .then(($router) => {
       return $router.push({
         name: 'order',
-        params: { preset: 'hawaian' },
+        params: { preset: 'hawaiian' },
         query: { peppers: true },
       })
     })

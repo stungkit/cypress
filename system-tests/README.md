@@ -5,7 +5,7 @@ This package contains Cypress's suite of system tests.
 
 These tests launch the [Cypress server](../packages/server) process for each test and run different specs and projects under specific environment conditions, to get tests that can be as close to "real world" as possible.
 
-These tests run in CI in Electron, Chrome, and Firefox under the `system-tests` job family.
+These tests run in CI in Electron, Chrome, Firefox, and WebKit under the `system-tests` job family.
 
 ## Running System Tests
 
@@ -76,7 +76,7 @@ The [project-fixtures](./project-fixtures) directory helps us here. Rather than 
 
 We will automatically copy the contents of the `project-fixtures` folder into the project just after it has been scaffolded.
 
-See the [package.json](./projects/webpack4_wds3-react/package.json) for the [webpack4_wds3-react](./projects/webpack4_wds3-react) package as an example of this pattern, and the [webpack-dev-server react tests](../npm/webpack-dev-server/cypress/e2e/react.cy.ts) as an example use.
+See the [package.json](./projects/webpack5_wds5-react/package.json) for the [webpack5_wds5-react](./projects/webpack5_wds5-react) package as an example of this pattern, and the [webpack-dev-server react tests](../npm/webpack-dev-server/cypress/e2e/react.cy.ts) as an example use.
 
 ### Developing Docker-based tests against built binary
 
@@ -106,13 +106,15 @@ Running `yarn test node-versions` would spin up a local Docker container for `cy
 
 These tests run in the `binary-system-tests` CI job.
 
-### Updating Snaphots
+### Updating Snapshots
 
 Prepend `SNAPSHOT_UPDATE=1` to any test command. See [`snap-shot-it` instructions](https://github.com/bahmutov/snap-shot-it#advanced-use) for more info.
 
 ```bash
 SNAPSHOT_UPDATE=1 yarn test go_spec
 ```
+
+If you are on a Retina device, you may get mismatching screenshot dimensions when updating snapshots. To resolve this, you can set the `SNAPSHOT_BROWSER` environment variable to `chrome` when you update the snapshots.
 
 ### Test Projects
 

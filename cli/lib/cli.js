@@ -93,6 +93,7 @@ const parseVariableOpts = (fnArgs, args) => {
 }
 
 const descriptions = {
+  autoCancelAfterFailures: 'overrides the project-level Cloud configuration to set the failed test threshold for auto cancellation or to disable auto cancellation when recording to the Cloud',
   browser: 'runs Cypress in the browser with the given name. if a filesystem path is supplied, Cypress will attempt to use the browser at that path.',
   cacheClear: 'delete all cached binaries',
   cachePrune: 'deletes all cached binaries except for the version currently in use',
@@ -109,7 +110,7 @@ const descriptions = {
   env: 'sets environment variables. separate multiple values with a comma. overrides any value in cypress.config.{js,ts,mjs,cjs} or cypress.env.json',
   exit: 'keep the browser open after tests finish',
   forceInstall: 'force install the Cypress binary',
-  global: 'force Cypress into global mode as if its globally installed',
+  global: 'force Cypress into global mode as if it were globally installed',
   group: 'a named group for recorded runs in Cypress Cloud',
   headed: 'displays the browser instead of running headlessly',
   headless: 'hide the browser instead of running headed (default for cypress run)',
@@ -121,6 +122,8 @@ const descriptions = {
   record: 'records the run. sends test results, screenshots and videos to Cypress Cloud.',
   reporter: 'runs a specific mocha reporter. pass a path to use a custom reporter. defaults to "spec"',
   reporterOptions: 'options for the mocha reporter. defaults to "null"',
+  runnerUi: 'displays the Cypress Runner UI',
+  noRunnerUi: 'hides the Cypress Runner UI',
   spec: 'runs specific spec file(s). defaults to "all"',
   tag: 'named tag(s) for recorded runs in Cypress Cloud',
   version: 'prints Cypress version',
@@ -134,8 +137,6 @@ const knownCommands = [
   'install',
   'open',
   'run',
-  'open-ct',
-  'run-ct',
   'verify',
   '-v',
   '--version',
@@ -153,26 +154,16 @@ const text = (description) => {
 
 function includesVersion (args) {
   return (
-    _.includes(args, 'version') ||
     _.includes(args, '--version') ||
     _.includes(args, '-v')
   )
 }
 
-function showVersions (args) {
+function showVersions (opts) {
   debug('printing Cypress version')
-  debug('additional arguments %o', args)
+  debug('additional arguments %o', opts)
 
-  const versionParser = commander.option(
-    '--component <package|binary|electron|node>', 'component to report version for',
-  )
-  .allowUnknownOption(true)
-  const parsed = versionParser.parse(args)
-  const parsedOptions = {
-    component: parsed.component,
-  }
-
-  debug('parsed version arguments %o', parsedOptions)
+  debug('parsed version arguments %o', opts)
 
   const reportAllVersions = (versions) => {
     logger.always('Cypress package version:', versions.package)
@@ -214,8 +205,8 @@ function showVersions (args) {
   return require('./exec/versions')
   .getVersions()
   .then((versions = defaultVersions) => {
-    if (parsedOptions.component) {
-      reportComponentVersion(parsedOptions.component, versions)
+    if (opts?.component) {
+      reportComponentVersion(opts.component, versions)
     } else {
       reportAllVersions(versions)
     }
@@ -242,6 +233,7 @@ const addCypressRunCommand = (program) => {
   .command('run')
   .usage('[options]')
   .description('Runs Cypress tests from the CLI without the GUI')
+  .option('--auto-cancel-after-failures <test-failure-count || false>', text('autoCancelAfterFailures'))
   .option('-b, --browser <browser-name-or-path>', text('browser'))
   .option('--ci-build-id <id>', text('ciBuildId'))
   .option('--component', text('component'))
@@ -260,6 +252,8 @@ const addCypressRunCommand = (program) => {
   .option('-q, --quiet', text('quiet'))
   .option('--record [bool]', text('record'), coerceFalse)
   .option('-r, --reporter <reporter>', text('reporter'))
+  .option('--runner-ui', text('runnerUi'))
+  .option('--no-runner-ui', text('noRunnerUi'))
   .option('-o, --reporter-options <reporter-options>', text('reporterOptions'))
   .option('-s, --spec <spec>', text('spec'))
   .option('-t, --tag <tag>', text('tag'))
@@ -454,13 +448,19 @@ module.exports = {
       program.help()
     })
 
-    program
+    const handleVersion = (cmd) => {
+      return cmd
+      .option('--component <package|binary|electron|node>', 'component to report version for')
+      .action((opts, ...other) => {
+        showVersions(util.parseOpts(opts))
+      })
+    }
+
+    handleVersion(program
+    .storeOptionsAsProperties()
     .option('-v, --version', text('version'))
     .command('version')
-    .description(text('version'))
-    .action(() => {
-      showVersions(args)
-    })
+    .description(text('version')))
 
     maybeAddInspectFlags(addCypressOpenCommand(program))
     .action((opts) => {
@@ -476,80 +476,6 @@ module.exports = {
       debug('running Cypress with args %o', fnArgs)
       require('./exec/run')
       .start(parseVariableOpts(fnArgs, args))
-      .then(util.exit)
-      .catch(util.logErrorExit1)
-    })
-
-    program
-    .command('open-ct')
-    .usage('[options]')
-    .description('Opens Cypress component testing interactive mode. Deprecated: use "open --component"')
-    .option('-b, --browser <browser-path>', text('browser'))
-    .option('-c, --config <config>', text('config'))
-    .option('-C, --config-file <config-file>', text('configFile'))
-    .option('-d, --detached [bool]', text('detached'), coerceFalse)
-    .option('-e, --env <env>', text('env'))
-    .option('--global', text('global'))
-    .option('-p, --port <port>', text('port'))
-    .option('-P, --project <project-path>', text('project'))
-    .option('--dev', text('dev'), coerceFalse)
-    .action((opts) => {
-      debug('opening Cypress')
-
-      const msg = `
-      ${logSymbols.warning} Warning: open-ct is deprecated and will be removed in a future release.
-
-      Use \`cypress open --component\` instead.
-      `
-
-      logger.warn()
-      logger.warn(stripIndent(msg))
-      logger.warn()
-
-      require('./exec/open')
-      .start({ ...util.parseOpts(opts), testingType: 'component' })
-      .then(util.exit)
-      .catch(util.logErrorExit1)
-    })
-
-    program
-    .command('run-ct')
-    .usage('[options]')
-    .description('Runs all Cypress component testing suites. Deprecated: use "run --component"')
-    .option('-b, --browser <browser-name-or-path>', text('browser'))
-    .option('--ci-build-id <id>', text('ciBuildId'))
-    .option('-c, --config <config>', text('config'))
-    .option('-C, --config-file <config-file>', text('configFile'))
-    .option('-e, --env <env>', text('env'))
-    .option('--group <name>', text('group'))
-    .option('-k, --key <record-key>', text('key'))
-    .option('--headed', text('headed'))
-    .option('--headless', text('headless'))
-    .option('--no-exit', text('exit'))
-    .option('--parallel', text('parallel'))
-    .option('-p, --port <port>', text('port'))
-    .option('-P, --project <project-path>', text('project'))
-    .option('-q, --quiet', text('quiet'))
-    .option('--record [bool]', text('record'), coerceFalse)
-    .option('-r, --reporter <reporter>', text('reporter'))
-    .option('-o, --reporter-options <reporter-options>', text('reporterOptions'))
-    .option('-s, --spec <spec>', text('spec'))
-    .option('-t, --tag <tag>', text('tag'))
-    .option('--dev', text('dev'), coerceFalse)
-    .action((opts) => {
-      debug('running Cypress run-ct')
-
-      const msg = `
-      ${logSymbols.warning} Warning: run-ct is deprecated and will be removed in a future release.
-      Use \`cypress run --component\` instead.
-      `
-
-      logger.warn()
-      logger.warn(stripIndent(msg))
-      logger.warn()
-
-      require('./exec/run')
-      .start({ ...util.parseOpts(opts), testingType: 'component' })
       .then(util.exit)
       .catch(util.logErrorExit1)
     })
@@ -663,7 +589,7 @@ module.exports = {
       // and now does not understand top level options
       // .option('-v, --version').command('version')
       // so we have to manually catch '-v, --version'
-      return showVersions(args)
+      handleVersion(program)
     }
 
     debug('program parsing arguments')

@@ -1,3 +1,4 @@
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import {
   CloudOrganizationConnectionStubs,
@@ -132,6 +133,20 @@ describe('<SelectCloudProjectModal />', () => {
       })
 
       mountDialog()
+    })
+
+    it('can switch between organizations with and without projects', () => {
+      cy.get('[data-cy="selectOrganization"]').click()
+      cy.findByRole('listbox').within(() => cy.findAllByText('Test Org 2').click())
+
+      cy.contains('button', defaultMessages.runs.connect.modal.selectProject.connectProject).should('not.exist')
+      cy.contains('button', defaultMessages.runs.connect.modal.selectProject.createProject).should('be.visible')
+
+      cy.get('[data-cy="selectOrganization"]').click()
+      cy.findByRole('listbox').within(() => cy.findAllByText('Test Org 1').click())
+
+      cy.contains('button', defaultMessages.runs.connect.modal.selectProject.createProject).should('not.exist')
+      cy.contains('button', defaultMessages.runs.connect.modal.selectProject.connectProject).should('be.visible')
     })
 
     context('create new project', () => {

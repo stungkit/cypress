@@ -6,6 +6,7 @@ export default defineConfig({
   projectId: 'ypt4pf',
   viewportWidth: 800,
   viewportHeight: 850,
+  experimentalMemoryManagement: true,
   retries: {
     runMode: 2,
     openMode: 0,
@@ -13,7 +14,6 @@ export default defineConfig({
   reporter: '../../node_modules/cypress-multi-reporters/index.js',
   reporterOptions: {
     configFile: '../../mocha-reporter-config.json',
-    videoCompression: false, // turn off video compression for CI
   },
   component: {
     experimentalSingleTabRunMode: true,

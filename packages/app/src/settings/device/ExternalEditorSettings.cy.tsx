@@ -1,4 +1,5 @@
 import ExternalEditorSettings from './ExternalEditorSettings.vue'
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 import { ExternalEditorSettingsFragmentDoc } from '../../generated/graphql-test'
 
@@ -13,8 +14,6 @@ describe('<ExternalEditorSettings />', () => {
     })
 
     cy.findByText(editorText.noEditorSelectedPlaceholder).should('be.visible')
-
-    cy.percySnapshot()
   })
 
   it('renders the title and description', () => {
@@ -35,16 +34,13 @@ describe('<ExternalEditorSettings />', () => {
       },
     })
 
-    const optionsSelector = '[role=option]'
-    const inputSelector = '[aria-haspopup=true]'
-
-    cy.get(inputSelector).click()
-    .get(optionsSelector).should('be.visible')
-    .get(optionsSelector).then(($options) => {
+    cy.get('[aria-haspopup=true]').click()
+    .get('[role=option]').should('be.visible')
+    .then(($options) => {
       cy.wrap($options.first()).click()
-
-      cy.percySnapshot()
     })
+
+    cy.get('[aria-expanded="false"]').contains('VS Code')
   })
 
   it('can input a custom binary', () => {
@@ -62,7 +58,5 @@ describe('<ExternalEditorSettings />', () => {
     cy.get('[data-cy="custom-editor"]').should('exist')
 
     cy.findByPlaceholderText(editorText.customPathPlaceholder).type('/usr/bin').should('have.value', '/usr/bin')
-
-    cy.percySnapshot()
   })
 })

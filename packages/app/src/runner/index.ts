@@ -23,10 +23,10 @@ import { IframeModel } from './iframe-model'
 import { AutIframe } from './aut-iframe'
 import { EventManager } from './event-manager'
 import { createWebsocket as createWebsocketIo } from '@packages/socket/lib/browser'
-import { decodeBase64Unicode } from '@packages/frontend-shared/src/utils/base64'
-import type { AutomationElementId } from '@packages/types/src'
+import type { AutomationElementId } from '@packages/types'
 import { useSnapshotStore } from './snapshot-store'
 import { useStudioStore } from '../store/studio-store'
+import { getRunnerConfigFromWindow } from './get-runner-config-from-window'
 
 let _eventManager: EventManager | undefined
 
@@ -35,6 +35,10 @@ export function createWebsocket (config: Cypress.Config) {
 
   ws.on('connect', () => {
     ws.emit('runner:connected')
+  })
+
+  ws.on('change:to:url', (url) => {
+    window.location.href = url
   })
 
   return ws
@@ -96,9 +100,6 @@ function createIframeModel () {
     autIframe.highlightEl,
     autIframe.doesAUTMatchTopSuperDomainOrigin,
     getEventManager(),
-    {
-      selectorPlaygroundModel: getEventManager().selectorPlaygroundModel,
-    },
   )
 
   iframeModel.listen()
@@ -148,13 +149,25 @@ function setupRunner () {
   createIframeModel()
 }
 
+interface GetSpecUrlOptions {
+  browserFamily?: string
+  namespace: string
+  specSrc: string
+}
+
 /**
  * Get the URL for the spec. This is the URL of the AUT IFrame.
  * CT uses absolute URLs, and serves from the dev server.
  * E2E uses relative, serving from our internal server's spec controller.
  */
-function getSpecUrl (namespace: string, specSrc: string) {
-  return `/${namespace}/iframes/${specSrc}`
+function getSpecUrl ({ browserFamily, namespace, specSrc }: GetSpecUrlOptions) {
+  let url = `/${namespace}/iframes/${specSrc}`
+
+  if (browserFamily) {
+    url += `?browserFamily=${browserFamily}`
+  }
+
+  return url
 }
 
 /**
@@ -169,8 +182,6 @@ function teardownSpec (isRerun: boolean = false) {
   return getEventManager().teardown(getMobxRunnerStore(), isRerun)
 }
 
-let isTorndown = false
-
 /**
  * Called when navigating away from the runner page.
  * This will teardown the reporter, event manager, and
@@ -182,7 +193,6 @@ export async function teardown () {
   _eventManager?.teardown(getMobxRunnerStore())
   await _eventManager?.resetReporter()
   _eventManager = undefined
-  isTorndown = true
 }
 
 /**
@@ -198,13 +208,15 @@ export function addCrossOriginIframe (location) {
     return
   }
 
+  const config = getRunnerConfigFromWindow()
+
   addIframe({
     id,
     // the cross origin iframe is added to the document body instead of the
     // container since it needs to match the size of the top window for screenshots
     $container: document.body,
     className: 'spec-bridge-iframe',
-    src: `${location.origin}/${getRunnerConfigFromWindow().namespace}/spec-bridge-iframes`,
+    src: `${location.origin}/${config.namespace}/spec-bridge-iframes?browserFamily=${config.browser.family}`,
   })
 }
 
@@ -230,7 +242,14 @@ function runSpecCT (config, spec: SpecFile) {
   const autIframe = getAutIframeModel()
   const $autIframe: JQuery<HTMLIFrameElement> = autIframe.create().appendTo($container)
 
-  const specSrc = getSpecUrl(config.namespace, spec.absolute)
+  // the iframe controller will forward the specpath via header to the devserver.
+  // using a query parameter allows us to recognize relative requests and proxy them to the devserver.
+  const specIndexUrl = `index.html?specPath=${encodeURI(spec.absolute)}`
+
+  const specSrc = getSpecUrl({
+    namespace: config.namespace,
+    specSrc: specIndexUrl,
+  })
 
   autIframe._showInitialBlankPage()
   $autIframe.prop('src', specSrc)
@@ -267,7 +286,7 @@ function setSpecForDriver (spec: SpecFile) {
  * a Spec IFrame to load the spec's source code, and
  * initialize Cypress on the AUT.
  */
-function runSpecE2E (config, spec: SpecFile) {
+async function runSpecE2E (config, spec: SpecFile) {
   const $runnerRoot = getRunnerElement()
 
   // clear AUT, if there is one.
@@ -290,10 +309,14 @@ function runSpecE2E (config, spec: SpecFile) {
     el.remove()
   })
 
-  autIframe.visitBlankPage()
+  await autIframe.visitBlankPage()
 
   // create Spec IFrame
-  const specSrc = getSpecUrl(config.namespace, encodeURIComponent(spec.relative))
+  const specSrc = getSpecUrl({
+    browserFamily: config.browser.family,
+    namespace: config.namespace,
+    specSrc: encodeURIComponent(spec.relative),
+  })
 
   // FIXME: BILL Determine where to call client with to force browser repaint
   /**
@@ -314,27 +337,17 @@ function runSpecE2E (config, spec: SpecFile) {
   getEventManager().initialize($autIframe, config)
 }
 
-export function getRunnerConfigFromWindow () {
-  return JSON.parse(decodeBase64Unicode(window.__CYPRESS_CONFIG__.base64Config)) as Cypress.Config
-}
-
 /**
  * Inject the global `UnifiedRunner` via a <script src="..."> tag.
  * which includes the event manager and AutIframe constructor.
- * It is bundlded via webpack and consumed like a third party module.
+ * It is bundled via webpack and consumed like a third party module.
  *
  * This only needs to happen once, prior to running the first spec.
  */
 async function initialize () {
   await dfd.promise
 
-  isTorndown = false
-
   const config = getRunnerConfigFromWindow()
-
-  if (isTorndown) {
-    return
-  }
 
   // Reset stores
   const autStore = useAutStore()
@@ -363,6 +376,18 @@ async function initialize () {
   window.UnifiedRunner.MobX.runInAction(() => setupRunner())
 }
 
+async function updateDevServerWithSpec (spec: SpecFile) {
+  return new Promise<void>((resolve, _reject) => {
+    // currently, we don't have criteria to reject the promise
+    // as the dev-server can take a long time to compile, which is variable per user.
+    Cypress.once('dev-server:on-spec-updated', () => {
+      resolve()
+    })
+
+    Cypress.emit('dev-server:on-spec-update', spec)
+  })
+}
+
 /**
  * This wraps all of the required interactions to run a spec.
  * Here are the things that happen:
@@ -374,7 +399,7 @@ async function initialize () {
  * 2. Reset the Reporter. We use the same instance of the Reporter,
  *    but reset the internal state each time we run a spec.
  *
- * 3. Teardown spec. This does a few things, primaily stopping the current
+ * 3. Teardown spec. This does a few things, primarily stopping the current
  *    spec run, which involves stopping the driver and runner.
  *
  * 4. Force the Reporter to re-render with the new spec we are executed.
@@ -401,13 +426,20 @@ async function executeSpec (spec: SpecFile, isRerun: boolean = false) {
 
   // creates a new instance of the Cypress driver for this spec,
   // initializes a bunch of listeners watches spec file for changes.
-  getEventManager().setup(config)
+  await getEventManager().setup(config)
 
   if (window.__CYPRESS_TESTING_TYPE__ === 'e2e') {
     return runSpecE2E(config, spec)
   }
 
   if (window.__CYPRESS_TESTING_TYPE__ === 'component') {
+    if (config.justInTimeCompile && !config.isTextTerminal) {
+      // If running with justInTimeCompile enabled and in open mode,
+      // send a signal to the dev server to load the spec before running
+      // since the spec and related resources are not yet compiled.
+      await updateDevServerWithSpec(spec)
+    }
+
     return runSpecCT(config, spec)
   }
 

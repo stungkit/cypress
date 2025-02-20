@@ -1,3 +1,4 @@
+// tslint:disable-next-line: no-implicit-dependencies - need to handle this
 import { defaultMessages } from '@cy/i18n'
 import GlobalEmpty from './GlobalEmpty.vue'
 
@@ -6,7 +7,7 @@ const emptyText = defaultMessages.globalPage.empty
 describe('<GlobalEmpty />', () => {
   beforeEach(() => {
     cy.mount(() => (<div
-      class="p-12 min-w-280px max-w-650px overflow-auto resize-x">
+      class="p-12 min-w-[280px] max-w-[650px] overflow-auto resize-x">
       <GlobalEmpty />
     </div>))
   })

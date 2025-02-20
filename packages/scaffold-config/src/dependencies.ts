@@ -4,16 +4,7 @@ export const WIZARD_DEPENDENCY_WEBPACK = {
   package: 'webpack',
   installer: 'webpack',
   description: 'Webpack is a module bundler',
-  minVersion: '>=4.0.0 || >=5.0.0',
-} as const
-
-export const WIZARD_DEPENDENCY_VUE_2 = {
-  type: 'vue',
-  name: 'Vue.js 2',
-  package: 'vue',
-  installer: 'vue@2',
-  description: 'The Progressive JavaScript Framework',
-  minVersion: '^2.0.0',
+  minVersion: '^4.0.0 || ^5.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_VUE_3 = {
@@ -31,7 +22,7 @@ export const WIZARD_DEPENDENCY_REACT = {
   package: 'react',
   installer: 'react',
   description: 'A JavaScript library for building user interfaces',
-  minVersion: '^=16.0.0 || ^=17.0.0 || ^=18.0.0',
+  minVersion: '^18.0.0 || ^19.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_REACT_DOM = {
@@ -40,7 +31,7 @@ export const WIZARD_DEPENDENCY_REACT_DOM = {
   package: 'react-dom',
   installer: 'react-dom',
   description: 'This package serves as the entry point to the DOM and server renderers for React',
-  minVersion: '^=16.0.0 || ^=17.0.0 || ^=18.0.0',
+  minVersion: '^18.0.0 || ^19.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_TYPESCRIPT = {
@@ -49,25 +40,7 @@ export const WIZARD_DEPENDENCY_TYPESCRIPT = {
   package: 'typescript',
   installer: 'typescript',
   description: 'TypeScript is a language for application-scale JavaScript',
-  minVersion: '>=3.0.0',
-} as const
-
-export const WIZARD_DEPENDENCY_REACT_SCRIPTS = {
-  type: 'reactscripts',
-  name: 'React Scripts',
-  package: 'react-scripts',
-  installer: 'react-scripts',
-  description: 'Create React apps with no build configuration',
-  minVersion: '^=4.0.0 || ^=5.0.0',
-} as const
-
-export const WIZARD_DEPENDENCY_VUE_CLI_SERVICE = {
-  type: 'vuecliservice',
-  name: 'Vue CLI',
-  package: '@vue/cli-service',
-  installer: '@vue/cli-service',
-  description: 'Standard Tooling for Vue.js Development',
-  minVersion: '^=4.0.0 || ^=5.0.0',
+  minVersion: '^4.0.0 || ^5.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_VITE = {
@@ -76,16 +49,7 @@ export const WIZARD_DEPENDENCY_VITE = {
   package: 'vite',
   installer: 'vite',
   description: 'Vite is dev server that serves your source files over native ES modules',
-  minVersion: '^=2.0.0 || ^=3.0.0',
-} as const
-
-export const WIZARD_DEPENDENCY_NUXT = {
-  type: 'nuxt',
-  name: 'Nuxt',
-  package: 'nuxt',
-  installer: 'nuxt@2',
-  description: 'The Intuitive Vue Framework',
-  minVersion: '^2.0.0',
+  minVersion: '^4.0.0 || ^5.0.0 || ^6.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_NEXT = {
@@ -94,7 +58,10 @@ export const WIZARD_DEPENDENCY_NEXT = {
   package: 'next',
   installer: 'next',
   description: 'The React Framework for Production',
-  minVersion: '^=10.0.0 || ^=11.0.0 || ^=12.0.0 || ^=13.0.0',
+  // next 15.0.0 -> 15.0.3 use the React 19 RC as a dependency
+  // Since we do not support the React 19 RC and only the official React 19 release,
+  // we will only be supporting Next.js 15.0.4 officially (the others previously mentioned should still work)
+  minVersion: '^14.0.0 || ^15.0.4',
 } as const
 
 export const WIZARD_DEPENDENCY_ANGULAR_CLI = {
@@ -103,7 +70,7 @@ export const WIZARD_DEPENDENCY_ANGULAR_CLI = {
   package: '@angular/cli',
   installer: '@angular/cli',
   description: 'CLI tool that you use to initialize, develop, scaffold, and maintain Angular applications.',
-  minVersion: '>=13.0.0',
+  minVersion: '^17.2.0 || ^18.0.0 || ^19.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_ANGULAR_DEVKIT_BUILD_ANGULAR = {
@@ -112,7 +79,7 @@ export const WIZARD_DEPENDENCY_ANGULAR_DEVKIT_BUILD_ANGULAR = {
   package: '@angular-devkit/build-angular',
   installer: '@angular-devkit/build-angular',
   description: 'Angular Webpack build facade',
-  minVersion: '>=13.0.0',
+  minVersion: '^17.2.0 || ^18.0.0 || ^19.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_ANGULAR_CORE = {
@@ -121,7 +88,7 @@ export const WIZARD_DEPENDENCY_ANGULAR_CORE = {
   package: '@angular/core',
   installer: '@angular/core',
   description: 'The core of the Angular framework',
-  minVersion: '>=13.0.0',
+  minVersion: '^17.2.0 || ^18.0.0 || ^19.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_ANGULAR_COMMON = {
@@ -130,7 +97,7 @@ export const WIZARD_DEPENDENCY_ANGULAR_COMMON = {
   package: '@angular/common',
   installer: '@angular/common',
   description: 'Commonly needed Angular directives and services',
-  minVersion: '>=13.0.0',
+  minVersion: '^17.2.0 || ^18.0.0 || ^19.0.0',
 } as const
 
 export const WIZARD_DEPENDENCY_ANGULAR_PLATFORM_BROWSER_DYNAMIC = {
@@ -139,29 +106,25 @@ export const WIZARD_DEPENDENCY_ANGULAR_PLATFORM_BROWSER_DYNAMIC = {
   package: '@angular/platform-browser-dynamic',
   installer: '@angular/platform-browser-dynamic',
   description: 'Library for using Angular in a web browser with JIT compilation',
-  minVersion: '>=13.0.0',
+  minVersion: '^17.2.0 || ^18.0.0 || ^19.0.0',
 } as const
 
-export const WIZARD_DEPENDENCY_SVELTE = {
+export const WIZARD_DEPENDENCY_SVELTE: Cypress.CypressComponentDependency = {
   type: 'svelte',
   name: 'Svelte.js',
   package: 'svelte',
   installer: 'svelte',
   description: 'Cybernetically enhanced web apps',
-  minVersion: '^3.0.0',
+  minVersion: '^5.0.0',
 } as const
 
 export const WIZARD_DEPENDENCIES = [
   WIZARD_DEPENDENCY_WEBPACK,
   WIZARD_DEPENDENCY_TYPESCRIPT,
-  WIZARD_DEPENDENCY_REACT_SCRIPTS,
-  WIZARD_DEPENDENCY_VUE_CLI_SERVICE,
   WIZARD_DEPENDENCY_VITE,
-  WIZARD_DEPENDENCY_NUXT,
   WIZARD_DEPENDENCY_NEXT,
   WIZARD_DEPENDENCY_REACT,
   WIZARD_DEPENDENCY_REACT_DOM,
-  WIZARD_DEPENDENCY_VUE_2,
   WIZARD_DEPENDENCY_VUE_3,
   WIZARD_DEPENDENCY_ANGULAR_CLI,
   WIZARD_DEPENDENCY_ANGULAR_DEVKIT_BUILD_ANGULAR,
@@ -175,3 +138,76 @@ export const WIZARD_BUNDLERS = [
   WIZARD_DEPENDENCY_WEBPACK,
   WIZARD_DEPENDENCY_VITE,
 ] as const
+
+const componentDependenciesOfInterest = [
+  '@angular/cli',
+  '@angular-devkit/build-angular',
+  '@angular/core',
+  '@angular/common',
+  '@angular/platform-browser-dynamic',
+  'react',
+  'react-dom',
+  'vue',
+  '@vue/cli-service',
+  'svelte',
+  'solid-js',
+  'lit',
+  'preact',
+  'preact-cli',
+  'ember',
+  '@stencil/core',
+  '@builder.io/qwik',
+  'alpinejs',
+  '@glimmer/component',
+  'typescript',
+]
+
+const bundlerDependenciesOfInterest = [
+  'vite',
+  'webpack',
+  'parcel',
+  'rollup',
+  'snowpack',
+]
+
+const testingDependenciesOfInterest = [
+  'jest',
+  'jsdom',
+  'jest-preview',
+  'storybook',
+  '@storybook/addon-interactions',
+  '@storybook/addon-a11y',
+  'chromatic',
+  '@testing-library/react',
+  '@testing-library/react-hooks',
+  '@testing-library/dom',
+  '@testing-library/jest-dom',
+  '@testing-library/cypress',
+  '@testing-library/user-event',
+  '@testing-library/vue',
+  '@testing-library/svelte',
+  '@testing-library/preact',
+  'happy-dom',
+  'vitest',
+  'vitest-preview',
+  'selenium-webdriver',
+  'nightwatch',
+  'karma',
+  'playwright',
+  'playwright-core',
+  '@playwright/experimental-ct-core',
+  '@playwright/experimental-ct-react',
+  '@playwright/experimental-ct-svelte',
+  '@playwright/experimental-ct-vue',
+  '@playwright/experimental-ct-solid',
+  '@playwright/experimental-ct-react17',
+  'axe-core',
+  'jest-axe',
+  'enzyme',
+]
+
+export const dependencyNamesToDetect = [
+  ...componentDependenciesOfInterest,
+  ...bundlerDependenciesOfInterest,
+  ...testingDependenciesOfInterest,
+]

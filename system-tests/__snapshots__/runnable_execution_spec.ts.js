@@ -43,16 +43,10 @@ exports['e2e runnable execution / runnables run correct number of times with nav
   │ Pending:      0                                                                                │
   │ Skipped:      0                                                                                │
   │ Screenshots:  0                                                                                │
-  │ Video:        true                                                                             │
+  │ Video:        false                                                                            │
   │ Duration:     X seconds                                                                        │
   │ Spec Ran:     runnable-run-count.cy.js                                                         │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-  (Video)
-
-  -  Started processing:  Compressing to 32 CRF                                                     
-  -  Finished processing: /XXX/XXX/XXX/cypress/videos/runnable-run-count.cy.js.mp4        (X second)
 
 
 ====================================================================================================
@@ -184,17 +178,10 @@ exports['e2e runnable execution / can navigate in before hook and test'] = `
   │ Pending:      0                                                                                │
   │ Skipped:      0                                                                                │
   │ Screenshots:  0                                                                                │
-  │ Video:        true                                                                             │
+  │ Video:        false                                                                            │
   │ Duration:     X seconds                                                                        │
   │ Spec Ran:     beforehook-and-test-navigation.cy.js                                             │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-  (Video)
-
-  -  Started processing:  Compressing to 32 CRF                                                     
-  -  Finished processing: /XXX/XXX/XXX/cypress/videos/beforehook-and-test-navigation.     (X second)
-                          cy.js.mp4                                                                 
 
 
 ====================================================================================================

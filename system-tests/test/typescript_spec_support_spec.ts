@@ -18,7 +18,6 @@ describe('e2e typescript in spec and support file', function () {
       expectedExitCode: 1,
       onStdout: (stdout) => {
         stdout = stdout.replace(new RegExp('^(.*)npm/(webpack-batteries-included-preprocessor/node_modules/ts-loader/index.js)$', 'm'), ' * relative/path/to/$2')
-        stdout = stdout.replace(new RegExp('^(.*)npm/(webpack-preprocessor/dist/lib/cross-origin-callback-loader.js)$', 'm'), ' * relative/path/to/$2')
 
         return systemTests.normalizeWebpackErrors(stdout)
       },
@@ -32,7 +31,7 @@ describe('e2e typescript in spec and support file', function () {
     })
   })
 
-  it('project wtih custom supportFile passes', function () {
+  it('project with custom supportFile passes', function () {
     return systemTests.exec(this, {
       project: 'ts-proj-custom-names',
       snapshot: true,

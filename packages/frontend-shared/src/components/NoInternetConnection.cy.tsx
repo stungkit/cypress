@@ -1,5 +1,5 @@
 import NoInternetConnection from './NoInternetConnection.vue'
-
+// tslint:disable-next-line: no-implicit-dependencies - unsure how to handle these
 import { defaultMessages } from '@cy/i18n'
 
 describe('<NoInternetConnection />', () => {
@@ -16,7 +16,5 @@ describe('<NoInternetConnection />', () => {
     cy.log('Mount with slot content')
     cy.mount(() => <NoInternetConnection> Extra Text </NoInternetConnection>)
     cy.contains('Extra Text').should('be.visible')
-
-    cy.percySnapshot()
   })
 })

@@ -87,11 +87,6 @@ const resolvedOptions: Array<ResolvedConfigOption> = [
     defaultValue: true,
     canUpdateDuringTestTime: false,
   }, {
-    name: 'experimentalFetchPolyfill',
-    defaultValue: false,
-    isExperimental: true,
-    canUpdateDuringTestTime: false,
-  }, {
     name: 'experimentalInteractiveRunEvents',
     defaultValue: false,
     isExperimental: true,
@@ -241,7 +236,7 @@ const resolvedOptions: Array<ResolvedConfigOption> = [
     canUpdateDuringTestTime: false,
   }, {
     name: 'video',
-    defaultValue: true,
+    defaultValue: false,
     canUpdateDuringTestTime: false,
   }, {
     name: 'videoCompression',

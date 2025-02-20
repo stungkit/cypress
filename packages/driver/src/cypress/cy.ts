@@ -32,6 +32,7 @@ import { create as createOverrides, IOverrides } from '../cy/overrides'
 import { historyNavigationTriggeredHashChange } from '../cy/navigation'
 import { EventEmitter2 } from 'eventemitter2'
 import { handleCrossOriginCookies } from '../cross-origin/events/cookies'
+import { trackTopUrl } from '../util/trackTopUrl'
 
 import type { ICypress } from '../cypress'
 import type { ICookies } from './cookies'
@@ -109,8 +110,8 @@ const setTopOnError = function (Cypress, cy: $Cy) {
 
   // prevent Mocha from setting top.onerror
   Object.defineProperty(top, 'onerror', {
-    set () {},
-    get () {},
+    set () { },
+    get () { },
     configurable: false,
     enumerable: true,
   })
@@ -131,12 +132,12 @@ const ensureRunnable = (cy, cmd) => {
 interface ICyFocused extends Omit<
   IFocused,
   'documentHasFocus' | 'interceptFocus' | 'interceptBlur'
-> {}
+> { }
 
 interface ICySnapshots extends Omit<
   ISnapshots,
   'onCssModified' | 'onBeforeWindowLoad'
-> {}
+> { }
 
 export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssertions, IRetries, IJQuery, ILocation, ITimer, IChai, IXhr, IAliases, ICySnapshots, ICyFocused {
   id: string
@@ -217,6 +218,8 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
     this.config = config
     this.Cypress = Cypress
     this.Cookies = Cookies
+    // TODO: this should be awaited
+    /* tslint:disable:no-floating-promises */
     initVideoRecorder(Cypress)
 
     this.testConfigOverride = new TestConfigOverride()
@@ -338,6 +341,15 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
       this.enqueue($Command.create(attrs))
     })
 
+    // clears out any extra tabs/windows between tests
+    Cypress.on('test:before:run:async', () => {
+      return Cypress.backend('close:extra:targets')
+    })
+
+    if (!Cypress.isCrossOriginSpecBridge) {
+      trackTopUrl()
+    }
+
     handleCrossOriginCookies(Cypress)
   }
 
@@ -378,9 +390,11 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
 
     err.stack = $stackUtils.normalizedStack(err)
 
+    const userInvocationStack = $errUtils.getUserInvocationStack(err, this.state)
+
     err = $errUtils.enhanceStack({
       err,
-      userInvocationStack: $errUtils.getUserInvocationStack(err, this.state),
+      userInvocationStack,
       projectRoot: this.config('projectRoot'),
     })
 
@@ -505,16 +519,16 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
         // If the runner can communicate, we should setup all events, otherwise just setup the window and fire the load event.
         if (isRunnerAbleToCommunicateWithAUT) {
           if (this.Cypress.isBrowser('webkit')) {
-          // WebKit's unhandledrejection event will sometimes not fire within the AUT
-          // due to a documented bug: https://bugs.webkit.org/show_bug.cgi?id=187822
-          // To ensure that the event will always fire (and always report these
-          // unhandled rejections to the user), we patch the AUT's Error constructor
-          // to enqueue a no-op microtask when executed, which ensures that the unhandledrejection
-          // event handler will be executed if this Error is uncaught.
+            // WebKit's unhandledrejection event will sometimes not fire within the AUT
+            // due to a documented bug: https://bugs.webkit.org/show_bug.cgi?id=187822
+            // To ensure that the event will always fire (and always report these
+            // unhandled rejections to the user), we patch the AUT's Error constructor
+            // to enqueue a no-op microtask when executed, which ensures that the unhandledrejection
+            // event handler will be executed if this Error is uncaught.
             const originalError = autWindow.Error
 
             autWindow.Error = function __CyWebKitError (...args) {
-              autWindow.queueMicrotask(() => {})
+              autWindow.queueMicrotask(() => { })
 
               return originalError.apply(this, args)
             }
@@ -683,7 +697,7 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
     const cyFn = wrap(true)
     const chainerFn = wrap(false)
 
-    const callback = (chainer, userInvocationStack, args, firstCall = false) => {
+    const callback = (chainer, userInvocationStack, args, privilegeVerification, firstCall = false) => {
       // dont enqueue / inject any new commands if
       // onInjectCommand returns false
       const onInjectCommand = cy.state('onInjectCommand')
@@ -699,6 +713,7 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
         chainerId: chainer.chainerId,
         userInvocationStack,
         fn: firstCall ? cyFn : chainerFn,
+        privilegeVerification,
       }))
     }
 
@@ -706,6 +721,15 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
 
     cy[name] = function (...args) {
       ensureRunnable(cy, name)
+
+      // for privileged commands, we send a message to the server that verifies
+      // them as coming from the spec. the fulfillment of this promise means
+      // the message was received. the implementation for those commands
+      // checks to make sure this promise is fulfilled before sending its
+      // websocket message for running the command to ensure prevent a race
+      // condition where running the command happens before the command is
+      // verified
+      const privilegeVerification = Cypress.emitMap('command:invocation', { name, args })
 
       // this is the first call on cypress
       // so create a new chainer instance
@@ -717,7 +741,7 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
 
       const userInvocationStack = $stackUtils.captureUserInvocationStack(cy.specWindow.Error)
 
-      callback(chainer, userInvocationStack, args, true)
+      callback(chainer, userInvocationStack, args, privilegeVerification, true)
 
       // if we are in the middle of a command
       // and its return value is a promise
@@ -761,7 +785,7 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
 
     this.queryFns[name] = fn
 
-    const callback = (chainer, userInvocationStack, args) => {
+    const callback = (chainer, userInvocationStack, args, privilegeVerification) => {
       // dont enqueue / inject any new commands if
       // onInjectCommand returns false
       const onInjectCommand = cy.state('onInjectCommand')
@@ -791,6 +815,7 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
 
       cyFn.originalFn = fn
       command.set('fn', cyFn)
+      command.set('privilegeVerification', privilegeVerification)
 
       cy.enqueue(command)
     }
@@ -799,6 +824,15 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
 
     cy[name] = function (...args) {
       ensureRunnable(cy, name)
+
+      // for privileged commands, we send a message to the server that verifies
+      // them as coming from the spec. the fulfillment of this promise means
+      // the message was received. the implementation for those commands
+      // checks to make sure this promise is fulfilled before sending its
+      // websocket message for running the command to ensure prevent a race
+      // condition where running the command happens before the command is
+      // verified
+      const privilegeVerification = Cypress.emitMap('command:invocation', { name, args })
 
       // this is the first call on cypress
       // so create a new chainer instance
@@ -810,7 +844,7 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
 
       const userInvocationStack = $stackUtils.captureUserInvocationStack(cy.specWindow.Error)
 
-      callback(chainer, userInvocationStack, args)
+      callback(chainer, userInvocationStack, args, privilegeVerification)
 
       // if we're the first call onto a cy
       // command, then kick off the run
@@ -1059,6 +1093,7 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
       // eslint-disable-next-line @cypress/dev/arrow-body-multiline-braces
       onError: (handlerType) => (event) => {
         const { originalErr, err, promise } = $errUtils.errorFromUncaughtEvent(handlerType, event) as ErrorFromProjectRejectionEvent
+
         const handled = cy.onUncaughtException({
           err,
           promise,
@@ -1080,7 +1115,7 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
       onSubmit (e) {
         return cy.Cypress.action('app:form:submitted', e)
       },
-      onLoad () {},
+      onLoad () { },
       onBeforeUnload (e) {
         cy.isStable(false, 'beforeunload')
 
@@ -1094,7 +1129,10 @@ export class $Cy extends EventEmitter2 implements ITimeouts, IStability, IAssert
         // doesn't trigger a confirmation dialog
         return undefined
       },
-      onUnload (e) {
+      onPageHide (e) {
+        // unload is being actively deprecated/removed by chrome, so for
+        // compatibility, we are using `window`'s `pagehide` event as a proxy
+        // for the `window:unload` event that we emit. See: https://github.com/cypress-io/cypress/pull/29525
         return cy.Cypress.action('app:window:unload', e)
       },
       onNavigation (...args) {

@@ -49,7 +49,6 @@ describe('e2e headless', function () {
         'CI': process.env.CI,
         'EXPECT_HEADLESS': '1',
       },
-      video: false,
     },
     headed: false,
     snapshot: true,
@@ -78,10 +77,15 @@ describe('e2e headless', function () {
     })
   })
 
-  systemTests.it('launches maximized by default in headless mode (1920x1080)', {
+  systemTests.it('launches maximized by default in headless mode', {
     headed: false,
     project: 'screen-size',
     spec: 'default_size.cy.js',
+    config: {
+      env: {
+        'CI': process.env.CI,
+      },
+    },
   })
 
   systemTests.it('launches at DPR 1x', {

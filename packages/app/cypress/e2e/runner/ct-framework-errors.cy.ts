@@ -33,7 +33,7 @@ function verifyErrorOnlyCapturedOnce (err: string) {
 function loadErrorSpec (options: Options): VerifyFunc {
   const { projectName, filePath, failCount, passCount = '--', configFile } = options
 
-  cy.openProject(projectName, ['--config-file', configFile])
+  cy.openProject(projectName, ['--config-file', configFile, '--component'])
   cy.startAppServer('component')
   cy.visitApp(`specs/runner?file=${filePath}`)
 
@@ -51,7 +51,7 @@ function loadErrorSpec (options: Options): VerifyFunc {
   return createVerify({ fileName: Cypress._.last(filePath.split('/')), hasPreferredIde: false, mode: 'component' })
 }
 
-const reactVersions = [17, 18] as const
+const reactVersions = [18, 19] as const
 
 reactVersions.forEach((reactVersion) => {
   describe(`React ${reactVersion}`, {
@@ -68,13 +68,13 @@ reactVersions.forEach((reactVersion) => {
     it('error conditions', () => {
       const verify = loadErrorSpec({
         projectName: `react${reactVersion}`,
-        configFile: 'cypress-vite.config.ts',
+        configFile: 'cypress-vite-default.config.ts',
         filePath: 'src/Errors.cy.jsx',
         failCount: 4,
       })
 
       verify('error on mount', {
-        line: 6,
+        line: 5,
         column: 33,
         uncaught: true,
         uncaughtMessage: 'mount error',
@@ -86,8 +86,8 @@ reactVersions.forEach((reactVersion) => {
       })
 
       verify('sync error', {
-        line: 11,
-        column: 34,
+        line: 12,
+        column: 19,
         uncaught: true,
         uncaughtMessage: 'sync error',
         message: [
@@ -101,8 +101,8 @@ reactVersions.forEach((reactVersion) => {
       })
 
       verify('async error', {
-        line: 18,
-        column: 38,
+        line: 21,
+        column: 21,
         uncaught: true,
         uncaughtMessage: 'async error',
         message: [
@@ -116,7 +116,7 @@ reactVersions.forEach((reactVersion) => {
       })
 
       verify('command failure', {
-        line: 43,
+        line: 47,
         column: 8,
         command: 'get',
         message: [
@@ -136,19 +136,19 @@ describe('Next.js', {
   numTestsKeptInMemory: 1,
 }, () => {
   beforeEach(() => {
-    cy.scaffoldProject('next-12')
+    cy.scaffoldProject('next-14')
   })
 
   it('error conditions', () => {
     const verify = loadErrorSpec({
-      projectName: 'next-12',
+      projectName: 'next-14',
       configFile: 'cypress.config.js',
       filePath: 'cypress/Errors.cy.jsx',
       failCount: 4,
     })
 
     verify('error on mount', {
-      line: 7,
+      line: 6,
       column: 33,
       uncaught: true,
       uncaughtMessage: 'mount error',
@@ -160,8 +160,8 @@ describe('Next.js', {
     })
 
     verify('sync error', {
-      line: 12,
-      column: 34,
+      line: 13,
+      column: 19,
       uncaught: true,
       uncaughtMessage: 'sync error',
       message: [
@@ -175,8 +175,8 @@ describe('Next.js', {
     })
 
     verify('async error', {
-      line: 19,
-      column: 38,
+      line: 22,
+      column: 21,
       uncaught: true,
       uncaughtMessage: 'async error',
       message: [
@@ -189,7 +189,7 @@ describe('Next.js', {
     })
 
     verify('command failure', {
-      line: 44,
+      line: 48,
       column: 8,
       command: 'get',
       message: [
@@ -208,21 +208,21 @@ describe('Vue', {
   numTestsKeptInMemory: 1,
 }, () => {
   beforeEach(() => {
-    cy.scaffoldProject('vuecli5-vue3')
+    cy.scaffoldProject('vue3-webpack-ts-configured')
   })
 
   it('error conditions', () => {
     const verify = loadErrorSpec({
-      projectName: 'vuecli5-vue3',
+      projectName: 'vue3-webpack-ts-configured',
       configFile: 'cypress.config.ts',
-      filePath: 'src/components/Errors.cy.js',
+      filePath: 'src/components/Errors.cy.ts',
       failCount: 4,
     })
 
     verify('error on mount', {
       fileName: 'Errors.vue',
-      line: 19,
-      column: 16,
+      line: 29,
+      column: 13,
       message: [
         'mount error',
       ],
@@ -231,8 +231,8 @@ describe('Vue', {
 
     verify('sync error', {
       fileName: 'Errors.vue',
-      line: 24,
-      column: 16,
+      line: 34,
+      column: 13,
       uncaught: true,
       uncaughtMessage: 'sync error',
       message: [
@@ -246,8 +246,8 @@ describe('Vue', {
 
     verify('async error', {
       fileName: 'Errors.vue',
-      line: 28,
-      column: 18,
+      line: 38,
+      column: 15,
       uncaught: true,
       uncaughtMessage: 'async error',
       message: [
@@ -265,81 +265,8 @@ describe('Vue', {
         'Timed out retrying',
         'element-that-does-not-exist',
       ],
-      codeFrameRegex: /Errors\.cy\.js:25/,
-      stackRegex: /Errors\.cy\.js:25/,
-    })
-  })
-})
-
-describe('Nuxt', {
-  viewportHeight: 768,
-  viewportWidth: 1024,
-  // Limiting tests kept in memory due to large memory cost
-  // of nested spec snapshots
-  numTestsKeptInMemory: 1,
-}, () => {
-  beforeEach(() => {
-    cy.scaffoldProject('nuxtjs-vue2-configured')
-  })
-
-  it('error conditions', () => {
-    const verify = loadErrorSpec({
-      projectName: 'nuxtjs-vue2-configured',
-      configFile: 'cypress.config.js',
-      filePath: 'components/Errors.cy.js',
-      failCount: 4,
-    })
-
-    verify('error on mount', {
-      fileName: 'Errors.vue',
-      line: 19,
-      uncaught: true,
-      uncaughtMessage: 'mount error',
-      message: [
-        'mount error',
-      ],
-      stackRegex: /Errors\.vue:19/,
-      codeFrameText: 'Errors.vue',
-    })
-
-    verify('sync error', {
-      fileName: 'Errors.vue',
-      line: 24,
-      uncaught: true,
-      uncaughtMessage: 'sync error',
-      message: [
-        'The following error originated from your application code',
-        'sync error',
-      ],
-      stackRegex: /Errors\.vue:24/,
-      codeFrameText: 'Errors.vue',
-    }).then(() => {
-      verifyErrorOnlyCapturedOnce('Error: sync error')
-    })
-
-    verify('async error', {
-      fileName: 'Errors.vue',
-      line: 28,
-      uncaught: true,
-      uncaughtMessage: 'async error',
-      message: [
-        'The following error originated from your application code',
-        'async error',
-      ],
-      stackRegex: /Errors\.vue:28/,
-      codeFrameText: 'Errors.vue',
-    }).then(() => {
-      verifyErrorOnlyCapturedOnce('Error: async error')
-    })
-
-    verify('command failure', {
-      command: 'get',
-      message: [
-        'Timed out retrying',
-        'element-that-does-not-exist',
-      ],
-      codeFrameRegex: /Errors\.cy\.js:26/,
-      stackRegex: /Errors\.cy\.js:26/,
+      codeFrameRegex: /Errors\.cy\.ts:32/,
+      stackRegex: /Errors\.cy\.ts:32/,
     })
   })
 })
@@ -354,12 +281,12 @@ describe.skip('Svelte', {
   numTestsKeptInMemory: 1,
 }, () => {
   beforeEach(() => {
-    cy.scaffoldProject('svelte-webpack')
+    cy.scaffoldProject('svelte-webpack-configured')
   })
 
   it('error conditions', () => {
     const verify = loadErrorSpec({
-      projectName: 'svelte-webpack',
+      projectName: 'svelte-webpack-configured',
       configFile: 'cypress.config.js',
       filePath: 'src/errors.cy.js',
       failCount: 4,
@@ -413,7 +340,7 @@ describe.skip('Svelte', {
   })
 })
 
-const angularVersions = [13, 14] as const
+const angularVersions = [17, 18] as const
 
 angularVersions.forEach((angularVersion) => {
   describe(`Angular ${angularVersion}`, {
@@ -465,7 +392,7 @@ angularVersions.forEach((angularVersion) => {
       })
 
       verify('command failure', {
-        line: 21,
+        line: 20,
         column: 8,
         command: 'get',
         message: [

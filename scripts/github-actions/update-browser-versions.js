@@ -1,11 +1,16 @@
 const https = require('https')
 const fs = require('fs')
+const yaml = require('yaml')
 
-const getLatestVersionData = () => {
+const CHROME_STABLE_KEY = 'chrome-stable-version'
+const CHROME_BETA_KEY = 'chrome-beta-version'
+
+// https://developer.chrome.com/docs/versionhistory/reference/#platform-identifiers
+const getLatestVersionData = ({ channel, currentVersion }) => {
   const options = {
-    hostname: 'omahaproxy.appspot.com',
+    hostname: 'versionhistory.googleapis.com',
     port: 443,
-    path: '/all.json',
+    path: `/v1/chrome/platforms/linux/channels/${channel}/versions?filter=version>${currentVersion}&order_by=version%20desc`,
     method: 'GET',
   }
 
@@ -33,17 +38,19 @@ const getLatestVersionData = () => {
 const getVersions = async ({ core }) => {
   try {
     // file path is relative to repo root
-    const currentBrowserVersions = JSON.parse(fs.readFileSync('./browser-versions.json'))
-    const data = JSON.parse(await getLatestVersionData())
-    const linuxData = data.find((item) => item.os === 'linux')
-    const stableData = linuxData.versions.find((version) => version.channel === 'stable')
-    const betaData = linuxData.versions.find((version) => version.channel === 'beta')
-    const hasStableUpdate = currentBrowserVersions['chrome:stable'] !== stableData.version
-    const hasBetaUpdate = currentBrowserVersions['chrome:beta'] !== betaData.version
+    const doc = yaml.parseDocument(fs.readFileSync('./.circleci/workflows.yml', 'utf8'))
+
+    const currentChromeStable = doc.contents.items.find((item) => item.key.value === CHROME_STABLE_KEY).value.value
+    const currentChromeBeta = doc.contents.items.find((item) => item.key.value === CHROME_BETA_KEY).value.value
+
+    const stableData = JSON.parse(await getLatestVersionData({ channel: 'stable', currentVersion: currentChromeStable }))
+    const betaData = JSON.parse(await getLatestVersionData({ channel: 'beta', currentVersion: currentChromeBeta }))
+    const hasStableUpdate = stableData.versions.length > 0
+    const hasBetaUpdate = betaData.versions.length > 0
     let description = 'Update '
 
     if (hasStableUpdate) {
-      description += `Chrome (stable) to ${stableData.version}`
+      description += `Chrome (stable) to ${stableData.versions[0].version}`
 
       if (hasBetaUpdate) {
         description += ' and '
@@ -51,17 +58,16 @@ const getVersions = async ({ core }) => {
     }
 
     if (hasBetaUpdate) {
-      description += `Chrome (beta) to ${betaData.version}`
+      description += `Chrome (beta) to ${betaData.versions[0].version}`
     }
 
     core.setOutput('has_update', (hasStableUpdate || hasBetaUpdate) ? 'true' : 'false')
-    core.setOutput('current_stable_version', currentBrowserVersions['chrome:stable'])
-    core.setOutput('latest_stable_version', stableData.version)
-    core.setOutput('current_beta_version', currentBrowserVersions['chrome:beta'])
-    core.setOutput('latest_beta_version', betaData.version)
+    core.setOutput('current_stable_version', currentChromeStable)
+    core.setOutput('latest_stable_version', hasStableUpdate ? stableData.versions[0].version : currentChromeStable)
+    core.setOutput('current_beta_version', currentChromeBeta)
+    core.setOutput('latest_beta_version', hasBetaUpdate ? betaData.versions[0].version : currentChromeBeta)
     core.setOutput('description', description)
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.log('Errored checking for new Chrome versions:', err.stack)
     core.setOutput('has_update', 'false')
   }
@@ -69,26 +75,32 @@ const getVersions = async ({ core }) => {
 
 const checkNeedForBranchUpdate = ({ core, latestStableVersion, latestBetaVersion }) => {
   // file path is relative to repo root
-  const branchBrowserVersions = JSON.parse(fs.readFileSync('./browser-versions.json'))
-  const hasNewerStableVersion = branchBrowserVersions['chrome:stable'] !== latestStableVersion
-  const hasNewerBetaVersion = branchBrowserVersions['chrome:beta'] !== latestBetaVersion
+  const doc = yaml.parseDocument(fs.readFileSync('./.circleci/workflows.yml', 'utf8'))
+
+  const currentChromeStable = doc.contents.items.find((item) => item.key.value === CHROME_STABLE_KEY).value.value
+  const currentChromeBeta = doc.contents.items.find((item) => item.key.value === CHROME_BETA_KEY).value.value
+
+  const hasNewerStableVersion = currentChromeStable !== latestStableVersion
+  const hasNewerBetaVersion = currentChromeBeta !== latestBetaVersion
 
   core.setOutput('has_newer_update', (hasNewerStableVersion || hasNewerBetaVersion) ? 'true' : 'false')
 }
 
 const updateBrowserVersionsFile = ({ latestBetaVersion, latestStableVersion }) => {
-  const currentBrowserVersions = JSON.parse(fs.readFileSync('./browser-versions.json'))
-  const newVersions = Object.assign(currentBrowserVersions, {
-    'chrome:beta': latestBetaVersion,
-    'chrome:stable': latestStableVersion,
-  })
+  const doc = yaml.parseDocument(fs.readFileSync('./.circleci/workflows.yml', 'utf8'))
+
+  const currentChromeStableYamlRef = doc.contents.items.find((item) => item.key.value === CHROME_STABLE_KEY)
+  const currentChromeBetaYamlRef = doc.contents.items.find((item) => item.key.value === CHROME_BETA_KEY)
+
+  currentChromeStableYamlRef.value.value = latestStableVersion
+  currentChromeBetaYamlRef.value.value = latestBetaVersion
 
   // file path is relative to repo root
-  fs.writeFileSync('./browser-versions.json', `${JSON.stringify(newVersions, null, 2) }\n`)
+  fs.writeFileSync('./.circleci/workflows.yml', yaml.stringify(doc), 'utf8')
 }
 
 const updatePRTitle = async ({ context, github, baseBranch, branchName, description }) => {
-  const { data } = await github.pulls.list({
+  const { data } = await github.rest.pulls.list({
     owner: context.repo.owner,
     repo: context.repo.repo,
     base: baseBranch,
@@ -96,13 +108,12 @@ const updatePRTitle = async ({ context, github, baseBranch, branchName, descript
   })
 
   if (!data.length) {
-    // eslint-disable-next-line no-console
     console.log('Could not find PR for branch:', branchName)
 
     return
   }
 
-  await github.pulls.update({
+  await github.rest.pulls.update({
     owner: context.repo.owner,
     repo: context.repo.repo,
     pull_number: data[0].number,

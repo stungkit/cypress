@@ -70,16 +70,10 @@ exports['e2e cookies with baseurl'] = `
   │ Pending:      0                                                                                │
   │ Skipped:      0                                                                                │
   │ Screenshots:  0                                                                                │
-  │ Video:        true                                                                             │
+  │ Video:        false                                                                            │
   │ Duration:     X seconds                                                                        │
   │ Spec Ran:     cookies_spec_baseurl.cy.js                                                       │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-  (Video)
-
-  -  Started processing:  Compressing to 32 CRF                                                     
-  -  Finished processing: /XXX/XXX/XXX/cypress/videos/cookies_spec_baseurl.cy.js.mp4      (X second)
 
 
 ====================================================================================================
@@ -135,17 +129,10 @@ exports['e2e cookies with no baseurl'] = `
   │ Pending:      0                                                                                │
   │ Skipped:      0                                                                                │
   │ Screenshots:  0                                                                                │
-  │ Video:        true                                                                             │
+  │ Video:        false                                                                            │
   │ Duration:     X seconds                                                                        │
   │ Spec Ran:     cookies_spec_no_baseurl.cy.js                                                    │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-  (Video)
-
-  -  Started processing:  Compressing to 32 CRF                                                     
-  -  Finished processing: /XXX/XXX/XXX/cypress/videos/cookies_spec_no_baseurl.cy.js.m     (X second)
-                          p4                                                                        
 
 
 ====================================================================================================

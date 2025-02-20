@@ -35,15 +35,18 @@ export const useRunnerStyle = () => {
     const miscBorders = 4
     const containerMinimum = 50
 
-    // start with just the margin since all other elements that take up width
-    // might not be there
-    let nonAutWidth = autMargin * 2
+    let nonAutWidth = 0
 
-    if (window.__CYPRESS_MODE__ === 'open') {
+    if (!isRunMode) {
       nonAutWidth += collapsedNavBarWidth
     }
 
     if (!window.__CYPRESS_CONFIG__.hideCommandLog) {
+      // if we are not hiding the entire runner, the margins need to be added in
+      if (!window.__CYPRESS_CONFIG__.hideRunnerUi) {
+        nonAutWidth += (autMargin * 2)
+      }
+
       nonAutWidth += reporterWidth.value + specListWidth.value + miscBorders
     }
 
@@ -55,7 +58,8 @@ export const useRunnerStyle = () => {
   })
 
   const containerHeight = computed(() => {
-    const nonAutHeight = autStore.specRunnerHeaderHeight + (autMargin * 2)
+    // if the entire runner is being hidden, there is not non-aut height, otherwise we need to account for the header and margins
+    const nonAutHeight = window.__CYPRESS_CONFIG__.hideRunnerUi ? 0 : autStore.specRunnerHeaderHeight + (autMargin * 2)
 
     return windowHeight.value - nonAutHeight
   })
@@ -110,11 +114,11 @@ export const useRunnerStyle = () => {
 export function useResizablePanels () {
   const preferences = usePreferences()
 
-  const handleResizeEnd = (panel: DraggablePanel) => {
+  const handleResizeEnd = async (panel: DraggablePanel) => {
     if (panel === 'panel1') {
-      preferences.update('specListWidth', specListWidth.value)
+      await preferences.update('specListWidth', specListWidth.value)
     } else {
-      preferences.update('reporterWidth', reporterWidth.value)
+      await preferences.update('reporterWidth', reporterWidth.value)
     }
   }
 

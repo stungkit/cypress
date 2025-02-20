@@ -154,10 +154,10 @@ context('cy.origin viewport', { browser: '!webkit' }, () => {
 
           cy.window().its('innerHeight').should('eq', 480)
           cy.window().its('innerWidth').should('eq', 320)
-        })
 
-        cy.window().then((win) => {
-          win.location.href = 'http://www.idp.com:3500/fixtures/primary-origin.html'
+          cy.window().then((win) => {
+            win.location.href = 'http://www.idp.com:3500/fixtures/primary-origin.html'
+          })
         })
 
         cy.origin('http://www.idp.com:3500', () => {
@@ -197,9 +197,10 @@ context('cy.origin viewport', { browser: '!webkit' }, () => {
         cy.shouldWithTimeout(() => {
           const { consoleProps } = findCrossOriginLogs('viewport', logs, 'foobar.com')
 
-          expect(consoleProps.Command).to.equal('viewport')
-          expect(consoleProps.Width).to.equal(320)
-          expect(consoleProps.Height).to.equal(480)
+          expect(consoleProps.name).to.equal('viewport')
+          expect(consoleProps.type).to.equal('command')
+          expect(consoleProps.props.Width).to.equal(320)
+          expect(consoleProps.props.Height).to.equal(480)
         })
       })
     })

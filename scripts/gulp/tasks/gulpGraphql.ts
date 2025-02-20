@@ -36,14 +36,14 @@ export async function nexusCodegenWatch () {
 
 export async function graphqlCodegen () {
   return spawned('gql-codegen', 'yarn graphql-codegen --config graphql-codegen.yml', {
-    cwd: monorepoPaths.root,
+    cwd: monorepoPaths.pkgGraphql,
     waitForExit: true,
   })
 }
 
 export async function graphqlCodegenWatch () {
   const spawned = universalSpawn('graphql-codegen', ['--watch', '--config', 'graphql-codegen.yml'], {
-    cwd: monorepoPaths.root,
+    cwd: monorepoPaths.pkgGraphql,
   })
   const dfd = pDefer()
   let hasResolved = false
@@ -98,7 +98,9 @@ export async function syncRemoteGraphQL () {
     // TODO(tim): fix
     await fs.ensureDir(path.join(monorepoPaths.pkgGraphql, 'src/gen'))
     await fs.promises.writeFile(path.join(monorepoPaths.pkgGraphql, 'schemas/cloud.graphql'), body)
-  } catch {}
+  } catch (error) {
+    console.error('Could not sync remote GraphQL schema', error)
+  }
 }
 
 /**

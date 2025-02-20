@@ -43,16 +43,10 @@ exports['e2e xhr / passes in global mode'] = `
   │ Pending:      1                                                                                │
   │ Skipped:      0                                                                                │
   │ Screenshots:  0                                                                                │
-  │ Video:        true                                                                             │
+  │ Video:        false                                                                            │
   │ Duration:     X seconds                                                                        │
   │ Spec Ran:     xhr.cy.js                                                                        │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-  (Video)
-
-  -  Started processing:  Compressing to 32 CRF                                                     
-  -  Finished processing: /XXX/XXX/XXX/cypress/videos/xhr.cy.js.mp4                       (X second)
 
 
 ====================================================================================================
@@ -114,16 +108,10 @@ exports['e2e xhr / passes through CLI'] = `
   │ Pending:      1                                                                                │
   │ Skipped:      0                                                                                │
   │ Screenshots:  0                                                                                │
-  │ Video:        true                                                                             │
+  │ Video:        false                                                                            │
   │ Duration:     X seconds                                                                        │
   │ Spec Ran:     xhr.cy.js                                                                        │
   └────────────────────────────────────────────────────────────────────────────────────────────────┘
-
-
-  (Video)
-
-  -  Started processing:  Compressing to 32 CRF                                                     
-  -  Finished processing: /XXX/XXX/XXX/cypress/videos/xhr.cy.js.mp4                       (X second)
 
 
 ====================================================================================================

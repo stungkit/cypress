@@ -46,12 +46,11 @@ interface StringValues {
  * @example
   ```
   {
-    experimentalFetchPolyfill: 'Polyfills `window.fetch` to enable Network spying and stubbing.'
+    experimentalRunAllSpecs: 'Enables the "Run All Specs" UI feature, allowing the execution of multiple specs sequentially'
   }
   ```
 */
 const _summaries: StringValues = {
-  experimentalFetchPolyfill: 'Polyfills `window.fetch` to enable Network spying and stubbing.',
   experimentalInteractiveRunEvents: 'Allows listening to the `before:run`, `after:run`, `before:spec`, and `after:spec` events in the plugins file during interactive mode.',
   experimentalModifyObstructiveThirdPartyCode: 'Applies `modifyObstructiveCode` to third party `.html` and `.js`, removes subresource integrity, and modifies the user agent in Electron.',
   experimentalSourceRewriting: 'Enables AST-based JS/HTML rewriting. This may fix issues caused by the existing regex-based JS/HTML replacement algorithm.',
@@ -59,7 +58,8 @@ const _summaries: StringValues = {
   experimentalStudio: 'Generate and save commands directly to your test suite by interacting with your app as an end user would.',
   experimentalWebKitSupport: 'Adds support for testing in the WebKit browser engine used by Safari. See https://on.cypress.io/webkit-experiment for more information.',
   experimentalRunAllSpecs: 'Enables the "Run All Specs" UI feature, allowing the execution of multiple specs sequentially',
-  experimentalOriginDependencies: 'Enables support for `require`/`import` within `cy.origin`',
+  experimentalOriginDependencies: 'Enables support for `Cypress.require()` for including dependencies within the `cy.origin()` callback.',
+  experimentalMemoryManagement: 'Enables support for improved memory management within Chromium-based browsers.',
 }
 
 /**
@@ -68,12 +68,11 @@ const _summaries: StringValues = {
  * @example
   ```
   {
-    experimentalFetchPolyfill: 'Fetch polyfill'
+    experimentalRunAllSpecs: 'Run All Specs'
   }
   ```
 */
 const _names: StringValues = {
-  experimentalFetchPolyfill: 'Fetch Polyfill',
   experimentalInteractiveRunEvents: 'Interactive Mode Run Events',
   experimentalModifyObstructiveThirdPartyCode: 'Modify Obstructive Third Party Code',
   experimentalSingleTabRunMode: 'Single Tab Run Mode',
@@ -82,6 +81,7 @@ const _names: StringValues = {
   experimentalWebKitSupport: 'WebKit Support',
   experimentalRunAllSpecs: 'Run All Specs',
   experimentalOriginDependencies: 'Origin Dependencies',
+  experimentalMemoryManagement: 'Memory Management',
 }
 
 /**
